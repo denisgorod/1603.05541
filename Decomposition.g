@@ -1,9 +1,95 @@
-##### Compile the file Gamma2.g, not this one #####
-
 ####### Some variables ##########
 
 ################################### General functions #####################################
 
+##################################### Isomorphism #######################################
+
+#Read("simpcomp");
+
+make_isomorphism:=function(L,isom)
+
+	local i,j,morph, new_L;
+	new_L:=ShallowCopy(L);
+	
+	for i in [1 .. Length(L)] do
+		for j in [1 .. Length(L[1])] do
+			for morph in isom do
+				if morph[1] = L[i][j] then
+					new_L[i][j]:=morph[2];
+				fi;
+			od;
+		od;
+		new_L[i]:=Set(new_L[i]);
+	od;
+	
+	return new_L;
+		
+end;
+
+relabeling:=function(eta)		
+	
+	local i, j, isom, sc_eta, new_eta, new_sc_eta, bool;
+	sc_eta:=[];
+	new_eta:=[];
+	new_sc_eta:=[];
+	
+	bool:=ListWithIdenticalEntries(Length(eta),false);
+	
+	for i in [1..Length(eta)] do
+		sc_eta[i]:=[];
+		for j in [1..2] do
+			sc_eta[i][j]:=SC(eta[i][j]);
+		od;
+	od;
+	
+	new_eta[1]:=eta[1];
+	new_sc_eta[1]:=sc_eta[1];
+	
+	for i in [2..Length(eta)] do	
+		for j in [1..Length(eta)] do
+			isom:=SCIsomorphismEx(new_sc_eta[i-1][2],sc_eta[j][1]);
+			Print(isom);
+			Print("\n");
+			if bool[j]=false and isom<>false and isom<>fail then
+				new_eta[i]:=[make_isomorphism(eta[j][1],isom),make_isomorphism(eta[j][2],isom)];
+				new_sc_eta[i]:=[SC(new_eta[i][1]),SC(new_eta[i][2])];
+				bool[j]:=true;
+			fi;
+		od;
+	od;
+
+	return new_eta;
+
+end;
+
+correction:=function(eta)
+
+	local i, new_eta, isom, new_bisfaces;
+	new_bisfaces:=[];
+
+	# BISTELLAR for the last 
+	
+	PrintTo("BISTELLAR.testobject","facets:=");
+	PrintTo("BISTELLAR.testobject",eta[1][1]);
+	PrintTo("BISTELLAR.testobject",";;");
+	
+	Read("BISTELLAR.g");
+	
+	isom:=SCIsomorphismEx(SC(eta[1][1]),SC(eta[Length(eta)][2]));
+	
+	new_eta:=ShallowCopy(eta);
+	
+	for i in [1..Length(bisfaces)-1] do
+		Add(new_eta, [bisfaces[i],bisfaces[i+1]]);
+	od;
+	
+	for i in [1..Length(bisfaces)] do
+		new_bisfaces[i]:=make_isomorphism(bisfaces[i],isom);
+		Add(new_eta, [new_bisfaces[i],new_bisfaces[i+1]]);
+	od;
+
+	return new_eta;
+end;
 
 ############# Some general functions ######################
 
@@ -51,7 +137,7 @@ end;
 
 ##
 
-ReverseList:=function(list)
+reverse_list:=function(list)
 
 	local new_list, i;
 	new_list:=[];
@@ -68,34 +154,35 @@ end;
 
 link:=function(mfd,simplex)
 
-	local  i,j,facetsmut;
+	local facetsmut, facet, rest;
 
-	facetsmut:=[];;
+	facetsmut:=[];
 
-	for i in [1 .. Length(mfd)] do
-		Add(facetsmut, []);;
-		for j in [1 .. Length(mfd[1])] do
-			AddSet(facetsmut[i],mfd[i][j]);;
-		od;
-
-		if IsSubsetSet(mfd[i], simplex) = true then
-			SubtractSet(facetsmut[i], simplex);;
-		else 
-			facetsmut[i]:=0;					
+	for facet in mfd do
+		if IsSubsetSet(facet, simplex) then
+			rest:=Difference(facet, simplex);
+			if Length(rest) > 0 then
+				Add(facetsmut, rest);
+			fi;
 		fi;
 	od;
 
-	for i in [0 .. Length(mfd)-1] do	
-
-		if facetsmut[Length(mfd)-i]=0 then
-			Remove(facetsmut,Length(mfd)-i);;
-		fi;
-
-	od;
-
-	return Set(facetsmut);	
+	return Set(facetsmut);
 
 end;
+
+
+##
+ori_sub:=function(sigma,tau)
+
+	if SignPerm(Sortex(sigma))=SignPerm(Sortex(tau)) then
+		return 1;
+	fi;
+
+	return -1;
+
+end;
+
 
 ##
 faces_count:=function(L)
@@ -140,20 +227,26 @@ end;
 
 ##
 U:=function(bis)
-	local result, simplex, link_b, link_f, i;
+	local result, changed, candidates, v;
+
+	changed:=Concatenation(
+		Difference(bis[1], bis[2]),
+		Difference(bis[2], bis[1])
+	);
+	if Length(changed) = 0 then return []; fi;
+
+	candidates:=Set(Flat(changed));
 	result:=[];
-	
-	for i in Set(Concatenation(Flat(bis[1]),Flat(bis[2]))) do
-		if Set(link(bis[1],[i]))<>Set(link(bis[2],[i])) then
-			Add(result, i);
+
+	for v in candidates do
+		if link(bis[1],[v])<>link(bis[2],[v]) then
+			Add(result, v);
 		fi;
 	od;
-	
-	#Print("U: processed \n");
+
 	return Set(result);
 end;
 
-##
 print_U_eta:=function(eta)
 
 	local b;
@@ -162,48 +255,6 @@ print_U_eta:=function(eta)
 	od;
 
 end;
-
-##
-degree:=function(L)
-
-	local degr, vertices, edge, edges, vertex;
-	
-	degr:=[];
-
-	vertices:=ve_count(L)[1];
-	edges:=ve_count(L)[2];
-	degr:=ListWithIdenticalEntries(Maximum(Flat(vertices)),0);
-	
-	for vertex in vertices do
-		degr[vertex[1]]:=0;
-		for edge in edges do
-			if IsSubset(edge,vertex) then
-				degr[vertex[1]]:=degr[vertex[1]]+1;
-			fi;
-		od;
-	od;
-	
-	#Print("degree: Degree of", L, "computed - ", degr, "\n");
-	return degr;
-
-end;
-
-duplicate_free_eta:=function(eta,ori_eta)
-	local b,c;
-	for c in [1 .. Length(eta)-2] do
-		for b in [1 .. Length(eta)-2] do
-			if Length(eta)>b+1 and U([eta[b],eta[b+1]])=U([eta[b+1],eta[b+2]]) then
-				Remove(eta,b);
-				Remove(eta,b);
-				Remove(ori_eta,b);
-				Remove(ori_eta,b);
-			fi;
-		od;
-	od;
-end;
-
-
-
 
 ##################################### Orientation ####################################################
 
@@ -225,31 +276,30 @@ end;
 ##
 ori_check:=function(bis, ori1)
 
-	local ori2n, j, vertex, vertemp, newface;
-	
+	local ori2n, j, vertex, vertemp, newface, U_bis;
+
 	for j in [1..Length(bis[2])] do
 		if bis[1][ori1[1]]=bis[2][j] then
-			#Print("ori_check -> easy case\n");
 			return [j,ori1[2]];
 		fi;
 	od;
-	
-	
+
+	U_bis:=U(bis);
+
 	for vertex in bis[1][ori1[1]] do
-		if vertex in U(bis) then
+		if vertex in U_bis then
 			for vertemp in Set(Flat(bis[1])) do
 				newface:=ShallowCopy(bis[1][ori1[1]]);
 				RemoveSet(newface,vertex);
 				AddSet(newface,vertemp);
-				if newface in bis[2] and not IsSubset(U(bis), newface) then
+				if newface in bis[2] and not IsSubset(U_bis, newface) then
 					ori2n:=((( Position( bis[1][ori1[1]], Difference(bis[1][ori1[1]], newface)[1]) - Position(newface , Difference(newface,bis[1][ori1[1]])[1]) ) mod 2) * 2) - 1;
-					#Print("ori_check -> hard case\n");
 					return [Position(bis[2], newface), ori2n * ori1[2]];
 				fi;
 			od;
 		fi;
 	od;
-	
+
 end;
 
 
@@ -291,48 +341,100 @@ end;
 ##
 ori_spread:=function(L, ori)
 
-	local i, j, graph, bool, simplex, edges, vertices, covertices, covertex, faces, edge, vertex, temp, simp, dir, bool2, temp_ori, beg_pos;
-	bool:=[];
-	bool2:=[];
-	graph:=[];
-	edges:=[];
-	temp_ori:=[];
-	vertices:=[];
-	
-	faces:=faces_count(L);
-	vertices:=faces[1];
-	covertices:=faces[Length(faces_count(L))-1];
-	
-	for covertex in covertices do
-		temp:=[];
-		for vertex in vertices do
-			simp:=Set(Concatenation(vertex,covertex));
-			if Length(simp)=Length(L[1]) and simp in L then
-				AddSet(temp, Position(L, simp));
+	local i, j, adj, bool, temp_ori, beg_pos, queue, pos, num,
+	      edge, vertex_pos, vertex_num, temp, new_ori;
+
+	# Build dual graph: facets adjacent iff they share a codim-1 face
+	adj:=List([1..Length(L)], x -> []);
+	for i in [1..Length(L)] do
+		for j in [i+1..Length(L)] do
+			if Length(IntersectionSet(L[i], L[j])) = Length(L[1]) - 1 then
+				Add(adj[i], j);
+				Add(adj[j], i);
 			fi;
 		od;
-		Add(graph, temp);
 	od;
 
 	beg_pos:=ori[1];
+	temp_ori:=[];
 	temp_ori[beg_pos]:=ori[2];
 	bool:=ListWithIdenticalEntries(Length(L),false);
-	bool2:=ListWithIdenticalEntries(Length(L),false);
-	
-	ori_step(L, beg_pos, temp_ori, bool, graph);
-	bool2[beg_pos]:=true;
-	
-	for i in [1..Length(L)] do
-		for j in [1..Length(L)] do
-			if bool2[j]=false and bool[j]=true then
-				#Print("Inside ori_spread\n");
-				ori_step(L, j , temp_ori, bool, graph);
-				bool2[j]:=true;
+	bool[beg_pos]:=true;
+
+	# BFS propagation
+	queue:=[beg_pos];
+	while Length(queue) > 0 do
+		pos:=Remove(queue, 1);
+		for num in adj[pos] do
+			if not bool[num] then
+				edge:=IntersectionSet(L[num], L[pos]);
+				vertex_pos:=Difference(L[pos], edge);
+				vertex_num:=Difference(L[num], edge);
+
+				temp:=Concatenation([vertex_pos[1]], edge);
+				new_ori:=-temp_ori[pos] * SignPerm(SortingPerm(temp));
+				temp:=Concatenation([vertex_num[1]], edge);
+				new_ori:=new_ori * SignPerm(SortingPerm(temp));
+
+				temp_ori[num]:=new_ori;
+				bool[num]:=true;
+				Add(queue, num);
 			fi;
 		od;
 	od;
 
-return temp_ori;
+	return temp_ori;
+
+end;
+
+##
+compute_ori:=function(etaa)
+
+	local temp_ori, i, j, bool, bis, new_etaa;
+	bool:=[];
+	temp_ori:=[];
+	new_etaa:=[];
+	
+	bool:=ListWithIdenticalEntries(Length(etaa),true);
+	
+	bis:=etaa[1];
+	temp_ori[1]:=[[1,1],ori_check(bis,[1,1])];		# orientation [+/-, position]
+	Add(new_etaa[1], bis);
+	
+	for i in [2..Length(etaa)] do
+		for j in [1..Length(etaa)] do
+			if etaa[j][1] = new_etaa[i-1][2] and bool[j] then
+				new_etaa[i]:=etaa[j];
+				bool[j]:=false;
+				temp_ori[i]:=[temp_ori[i-1][2],ori_check(etaa[j],temp_ori[i-1][2])];
+			fi;
+		od;
+	od;
+	
+	return [new_etaa, temp_ori];
+	
+end;
+
+##
+degree:=function(L)
+
+	# Vertex degree in the 1-skeleton.
+	# Valid for closed 2-manifold triangulations: in a closed surface every
+	# edge belongs to exactly two triangles, so degree(v) equals the number
+	# of triangles containing v.  All triangulations that appear in eta are
+	# PL 2-spheres, so this holds throughout.
+
+	local degr, facet, v;
+
+	degr:=ListWithIdenticalEntries(Maximum(Flat(L)),0);
+
+	for facet in L do
+		for v in facet do
+			degr[v]:=degr[v]+1;
+		od;
+	od;
+
+	return degr;
 
 end;
 
@@ -376,46 +478,24 @@ end;
 ##
 difficulty_tri:=function(L)
 
-	local k, number, deg, edges, vertices, edge, vertex, element;
-	deg:=[];
-	vertices:=[];
-	edges:=[];
+	local deg, number, num_vertices;
 
-	for k in [1..2] do
-
-	        faces[k]:=[];
-	        for element in L do
-			if Length(element) >= k then
-				UniteSet(faces[k],Combinations(element,k));
-			fi;
-	        od;
-	od;
-
-	vertices:=faces[1];
-	edges:=faces[2];
-
-	for vertex in vertices do
-		deg[vertex[1]]:=0;
-		for edge in edges do
-			if IsSubset(edge,vertex) then
-				deg[vertex[1]]:=deg[vertex[1]]+1;
-			fi;
-		od;
-	od;
+	deg:=degree(L);
+	num_vertices:=Length(Set(Flat(L)));
 
 	for number in deg do
-		if number=3 then 
-			return 3*Length(faces[1]);
+		if number=3 then
+			return 3*num_vertices;
 		fi;
 	od;
 
 	for number in deg do
-		if number=4 then 
-			return 3*Length(faces[1])+1;
+		if number=4 then
+			return 3*num_vertices+1;
 		fi;
 	od;
 
-	return 3*Length(faces[1])+2;
+	return 3*num_vertices+2;
 
 end;
 
@@ -460,6 +540,7 @@ end;
 
 
 ######################################## Computing the cycle #################################################
+#NOT USED#
 
 cycle:=function(L)
 
@@ -523,6 +604,201 @@ end;
 
 
 
+recursion:=function(L)
+
+	local i, Lbis, result, result2, recres, count, vertices, edges, vertex, edge, simplex, bis, l, temp, temprec, temprec2, recc;
+	
+	result:=[];;
+	result2:=[];;
+	Lbis:=[];;
+	recres:=[];;
+	count:=0;;
+	temprec2:=[];;
+
+	#find possible flips that lower the difficulty
+
+	vertices:=ve_count(L)[1];
+	edges:=ve_count(L)[2];
+	
+	if Length(L)=4 then
+		return recres;
+	fi;
+	
+	for vertex in vertices do
+		if Length(link(L, vertex)) = 3 then
+
+			#modify L
+			Lbis:=ShallowCopy(L);
+			simplex:=Set(Flat(link(L,vertex)));
+			
+			Print(simplex);
+			Print(vertex);
+			
+			RemoveSet(Lbis, Set([simplex[1],simplex[2],vertex[1]]));
+			RemoveSet(Lbis, Set([simplex[1],simplex[3],vertex[1]]));
+			RemoveSet(Lbis, Set([simplex[2],simplex[3],vertex[1]]));
+			
+			AddSet(Lbis, simplex);
+			
+			#make the recursion
+			
+			AddSet(result, [Lbis,L]);
+			AddSet(result2, Lbis);
+			
+			count:=count + 1;
+			
+		fi;
+	od;
+	
+	temp:=degree(L);
+	
+	for edge in edges do
+		
+		if not IsSubset(Set(Flat(link(L,edge))),edges) then			###CHECK###
+			#modify L
+			Lbis:=ShallowCopy(L);
+			simplex:=Set(Flat(link(L,edge)));
+			
+			Print(edge);
+			Print(simplex);
+			
+			RemoveSet(Lbis, Set([edge[1],edge[2],simplex[1]]));
+			RemoveSet(Lbis, Set([edge[1],edge[2],simplex[2]]));
+			
+			AddSet(Lbis, Set([simplex[1],simplex[2],edge[1]]));
+			AddSet(Lbis, Set([simplex[1],simplex[2],edge[2]]));
+			
+			#result - bistellar flips
+			#result2 - for the recursion
+						
+			if difficulty_tri(Lbis) < difficulty_tri(L) then
+				
+				AddSet(result, [Lbis,L]);
+				AddSet(result2, Lbis);
+						
+				count:=count + 1;
+					
+			fi;
+			
+		fi;
+	od;
+	
+	for bis in result do 
+		recres[Position(result,bis)]:= rec( denom:=count , flip:=bis );
+	od;
+	
+	for l in result2 do
+	
+		temprec:=recursion(l);
+		temprec2:=[];
+		for i in [1 .. Length(temprec)] do
+			if temprec[i] <> [] then
+				Add(temprec2, temprec[i]);;
+			fi;
+		od;
+		
+		temprec:=ShallowCopy(temprec2);;
+		
+		for recc in temprec do
+			recc.denom:=count * recc.denom;
+		od;
+		Append(recres, temprec);
+		
+	od;
+	
+	return recres;
+	
+end;	
+
+
+##
+cycle_count:=function(bist)
+
+	local j, k;
+	
+	vertices:=Set(Flat(faces));
+
+
+	for k in [1..Length(bisfaces)-1] do
+		sgn_eta[k]:=1;
+	od;
+	
+	ori_eta[1]:=1;
+
+	for j in [1..Length(vertices)] do
+		for k in [1..Length(bisfaces)-1] do
+			if (link(bisfaces[k], [vertices[j]])<>link(bisfaces[k+1], [vertices[j]])) and (Length(link(bisfaces[k+1], [vertices[j]]))>0) then
+				Add(eta,[link(bisfaces[k], [vertices[j]]),link(bisfaces[k+1], [vertices[j]])]);
+				Set(eta[k][1]);
+				Set(eta[k][2]);
+				#ORI_ETA ! ! ! Apparently not.
+																
+			fi;
+		od;
+	od;
+	
+	#for j in [1..Length(eta)] do
+	#	ori_eta[j+1]:=ori_sub(eta[j][1][1],Intersection(eta[j][1][1], eta[j][2][1]));
+	#od;
+end;
+
+########################################### Duplications and signs ##################################
+
+##
+sgn_eta_change:=function(etaa, sgn_etaa)
+
+local temp, bis;
+	for bis in etaa do
+		if sgn_etaa[Position(bis,etaa)]=-1 then 
+			temp:=ShallowCopy(bis[1]);
+			bis[1]:=ShallowCopy(bis[2]);
+			bis[2]:=temp;
+			sgn_etaa[Position(bis,etaa)]:=1;
+			Print("sgn_eta_change: ", Position(bis,etaa)," changed to positive");
+		fi;
+	od;
+
+end;
+
+##
+duplicate_free_eta:=function(eta,ori_eta)
+
+	# Remove consecutive cancelling pairs: whenever U([eta[b],eta[b+1]]) =
+	# U([eta[b+1],eta[b+2]]) the middle element and its left neighbour are
+	# removed.  Cancellations can cascade, so after each removal we step
+	# back one position and recheck.
+	#
+	# Complexity: O(n) calls to U instead of the previous O(n^2).
+	# All n-1 U-values are pre-computed once; after a removal only the
+	# one new boundary value needs to be recomputed.
+
+	local u, b;
+
+	if Length(eta) < 3 then return; fi;
+
+	# Pre-compute U for every consecutive pair.
+	u:=List([1..Length(eta)-1], b -> U([eta[b],eta[b+1]]));
+
+	b:=1;
+	while b <= Length(eta)-2 do
+		if u[b]=u[b+1] then
+			Remove(eta,    b); Remove(eta,    b);
+			Remove(ori_eta,b); Remove(ori_eta,b);
+			Remove(u,      b); Remove(u,      b);
+			# Recompute the one U-value that now spans across the gap.
+			if b > 1 then
+				u[b-1]:=U([eta[b-1],eta[b]]);
+				b:=b-1;
+			fi;
+		else
+			b:=b+1;
+		fi;
+	od;
+
+end;
+
+
+
 ######################################## P, Q, R ######################################################
 
 ##
@@ -548,9 +824,7 @@ count_pq:=function(L, lu, ld, ru, rd, v)
 		od;
 	od;
 	
-	if debug > 2 then
-		Print("  count_pq: ->cycle:", cycle, "\n");
-	fi;
+	#Print("  count_pq: ->cycle:", cycle, "\n");
 	
 	Remove(cycle);
 	
@@ -562,9 +836,7 @@ count_pq:=function(L, lu, ld, ru, rd, v)
 		q:=(Position(cycle,ld)-Position(cycle,rd)) mod Length(cycle);
 	fi;
 	
-	if debug > 2 then
-		Print("  count_pq: ->p=",p,", q=",q,"\n");
-	fi;
+	#Print("  count_pq: ->p=",p,", q=",q,"\n");
 	
 	return [p,q];	
 
@@ -577,9 +849,7 @@ count_ro:=function(pq)
 	p:=pq[1];
 	q:=pq[2];
 
-	if debug > 2 then
-		Print("  count_ro: ->p=",p,", q=",q,", ",(q-p)/((p+q+2)*(p+q+3)*(p+q+4))," returned\n");
-	fi;
+	#Print("  count_ro: ->p=",p,", q=",q,", ",(q-p)/((p+q+2)*(p+q+3)*(p+q+4))," returned\n");
 	
 	return (q-p)/((p+q+2)*(p+q+3)*(p+q+4));
 
@@ -588,9 +858,7 @@ end;
 ##
 count_omega:=function(p)
 
-	if debug > 2 then
-		Print("  count_omega: ->p=",p,", ",1/((p+2)*(p+3))," returned\n");
-	fi;
+	#Print("  count_omega: ->p=",p,", ",1/((p+2)*(p+3))," returned\n");
 	return 1/((p+2)*(p+3));
 	
 end;
@@ -598,7 +866,7 @@ end;
 
 ### Special for b=3 ###
 
-count_value_ghi:=function(bis,bis_edge,edge,ori1)
+count_with_intersection:=function(bis,bis_edge,edge,ori1)
 
 	local U1, U2, intersection, link_edge, link_bis_edge, temp_ori1, v, w, u, temp;
 	
@@ -689,16 +957,10 @@ count_value_ghi:=function(bis,bis_edge,edge,ori1)
 		fi;
 	fi;
 	
-	Print("ERROR! THIS SHOULD NEVER HAPPEN!");
+	Print("ERROR!");
 	return 0;
 
 end;
-
-#count_value_abc:=function(bis,bis_simplex,simplex,ori1)
-#
-#	local U1, U2, intersection, link_simplex, link_bis_edge, temp_ori1, v, w, u, temp;
-#	
-#end;
 
 
 ######################################## Decomposition #################################################
@@ -734,9 +996,7 @@ for i in max_pos do
 			if (deg_f[j]=3) and (deg_res[j]=3) then
 				##here change eta - case 1 deg 3
 				
-				if debug > 1 then
-					Print("b=1 -> case deg 3, vertex ", j,"\n");
-				fi;
+				Print("b=1 -> case deg 3, vertex ", j,"\n");
 				
 				temp1:=Set(Flat(link(eta[i],[j])));
 				temp:=[StructuralCopy(eta[i]),StructuralCopy(eta[i+1])];
@@ -764,9 +1024,7 @@ for i in max_pos do
 				u:=IntersectionSet(Set(Flat(link(eta[i],[j]))),U(temp));
 				if Length(u)=0 then
 					# everything's great
-					if debug > 0 then
-						Print("decomposition -> return ",0,"\n");
-					fi;
+					Print("decomposition -> return ",0,"\n");
 					return 0;
 				elif Length(u)=1 then
 					
@@ -774,9 +1032,7 @@ for i in max_pos do
 					
 					# not so great
 					
-					if debug > 1 then
-						Print("  ->intersection - 1 vertex - ",u[1],"\n");
-					fi;
+					Print("  ->intersection - 1 vertex - ",u[1],"\n");
 					
 					u:=u[1];
 					
@@ -789,29 +1045,21 @@ for i in max_pos do
 						if simp_ori(eta[i],temp_ori,[j,u,temp[1]]) = 1 then
 							if simp_ori(eta[i],temp_ori,[u,temp2[2],temp2[1]])=1 then
 								temp_res:=count_ro(count_pq(eta[i],temp[1],temp[2],temp2[1],temp2[2],u));
-								if debug > 0 then
-									Print("decomposition -> return ",temp_res,"\n");
-								fi;
+								Print("decomposition -> return ",temp_res,"\n");
 								return temp_res;
 							else
 								temp_res:=count_ro(count_pq(eta[i],temp[1],temp[2],temp2[2],temp2[1],u));
-								if debug > 0 then
-									Print("decomposition -> return ",temp_res,"\n");
-								fi;
+								Print("decomposition -> return ",temp_res,"\n");
 								return temp_res;
 							fi;
 						else
 							if simp_ori(eta[i],temp_ori,[u,temp2[2],temp2[1]])=1 then
 								temp_res:=count_ro(count_pq(eta[i],temp[2],temp[1],temp2[1],temp2[2],u));
-								if debug > 0 then
-									Print("decomposition -> return ",temp_res,"\n");
-								fi;
+								Print("decomposition -> return ",temp_res,"\n");
 								return temp_res;
 							else
 								temp_res:=count_ro(count_pq(eta[i],temp[2],temp[1],temp2[2],temp2[1],u));
-								if debug > 0 then
-									Print("decomposition -> return ",temp_res,"\n");
-								fi;
+								Print("decomposition -> return ",temp_res,"\n");
 								return temp_res;
 							fi;
 						fi;
@@ -827,29 +1075,21 @@ for i in max_pos do
 						if simp_ori(eta[i+3],temp_ori,[j,u,temp[1]]) = 1 then
 							if simp_ori(eta[i+3],temp_ori,[u,temp2[2],temp2[1]])=1 then
 								temp_res:=-count_ro(count_pq(eta[i],temp[1],temp[2],temp2[1],temp2[2],u));
-								if debug > 0 then
-									Print("decomposition -> return ",temp_res,"\n");
-								fi;
+								Print("decomposition -> return ",temp_res,"\n");
 								return temp_res;
 							else
 								temp_res:=-count_ro(count_pq(eta[i],temp[1],temp[2],temp2[2],temp2[1],u));
-								if debug > 0 then
-									Print("decomposition -> return ",temp_res,"\n");
-								fi;
+								Print("decomposition -> return ",temp_res,"\n");
 								return temp_res;
 							fi;
 						else
 							if simp_ori(eta[i+3],temp_ori,[u,temp2[2],temp2[1]])=1 then
 								temp_res:=-count_ro(count_pq(eta[i],temp[2],temp[1],temp2[1],temp2[2],u));
-								if debug > 0 then
-									Print("decomposition -> return ",temp_res,"\n");
-								fi;
+								Print("decomposition -> return ",temp_res,"\n");
 								return temp_res;
 							else
 								temp_res:=-count_ro(count_pq(eta[i],temp[2],temp[1],temp2[2],temp2[1],u));
-								if debug > 0 then
-									Print("decomposition -> return ",temp_res,"\n");
-								fi;
+								Print("decomposition -> return ",temp_res,"\n");
 								return temp_res;
 							fi;
 						fi;
@@ -859,9 +1099,7 @@ for i in max_pos do
 										
 				else
 					# Length(u)=2, a bit better
-					if debug > 1 then
-						Print("  ->intersection - 2 vertices - ",u[1],", ",u[2],"\n");
-					fi;
+					Print("  ->intersection - 2 vertices - ",u[1],", ",u[2],"\n");
 					
 					temp_ori:=ori_spread(eta[i],ori_eta[i]);
 					
@@ -876,16 +1114,12 @@ for i in max_pos do
 					if deg_f[u1]<deg_res[u1] then
 						#  e
 						temp_res:=count_ro([0,Length(link(eta[i],[u2]))-4])+count_ro([0,Length(link(eta[i],[u1]))-3]);
-						if debug > 0 then
-							Print("decomposition -> return ",temp_res,"\n");
-						fi;
+						Print("decomposition -> return ",temp_res,"\n");
 						return temp_res;
 					else
 						# -e
 						temp_res:=-count_ro([0,Length(link(eta[i],[u1]))-4])-count_ro([0,Length(link(eta[i],[u2]))-3]);
-						if debug > 0 then
-							Print("decomposition -> return ",temp_res,"\n");
-						fi;
+						Print("decomposition -> return ",temp_res,"\n");
 						return temp_res;
 					fi;
 					
@@ -904,9 +1138,7 @@ for i in max_pos do
 						
 						#-2a
 						
-						if debug > 1 then
-							Print("b=1 -> case deg 3-4, vertices ", j,", ", k, "\n");
-						fi;
+						Print("b=1 -> case deg 3-4, vertices ", j,", ", k, "\n");
 						
 						temp1:=[];
 						temp:=[eta[i],eta[i+1]];
@@ -976,9 +1208,7 @@ for i in max_pos do
 							r:=degree(eta[i+1])[tempr] - 2;
 							
 							temp_res:=-count_omega(p)+count_omega(q)-count_omega(r)+ 1/12;
-							if debug > 0 then
-								Print("decomposition -> return ",temp_res,"\n");
-							fi;
+							Print("decomposition -> return ",temp_res,"\n");
 							return temp_res;
 							
 						else 
@@ -990,9 +1220,7 @@ for i in max_pos do
 							r:=degree(eta[i+1])[tempr] - 2;
 							
 							temp_res:=count_omega(p)-count_omega(q)+count_omega(r)- 1/12;
-							if debug > 0 then
-								Print("decomposition -> return ",temp_res,"\n");
-							fi;
+							Print("decomposition -> return ",temp_res,"\n");
 							return temp_res;
 						
 						fi;
@@ -1031,45 +1259,34 @@ for i in max_pos do
 						if Length(IntersectionSet(Flat(link(eta[i],sigma2)), sigma1)) = 0 then
 							#a
 							case:='a';
-							if debug > 1 then
-								Print("b=2 -> a\n");
-							fi;
+							Print("b=2 -> a\n");
 						else
 							#b2
 							case:='2';
-							if debug > 1 then
-								Print("b=2 -> b2\n");
-							fi;
+							Print("b=2 -> b2\n");
 						fi;
 					else
 						#b1a
 						if Length(IntersectionSet(Flat(link(eta[i],sigma2)), sigma1)) = 0 then
 							#b1
 							case:='1';
-							if debug > 1 then
-								Print("b=2 -> b1\n");
-							fi;
+							Print("b=2 -> b1\n");
 						else
 							#e
 							case:='e';
-							if debug > 1 then
-								Print("b=2 -> e\n");
-							fi;
+							Print("b=2 -> e\n");
 						fi;
+						
 					fi;
 					
 				elif Length(IntersectionSet(link(eta[i],sigma1), link(eta[i],sigma2))) = 1 then
 					#c
 					case:='c';
-					if debug > 1 then
-						Print("b=2 -> c\n");
-					fi;
+					Print("b=2 -> c\n");
 				else
 					#i
 					case:='i';
-					if debug > 1 then
-						Print("b=2 -> i\n");
-					fi;
+					Print("b=2 -> i\n");
 				fi;
 			else
 				#dfghjk
@@ -1078,45 +1295,33 @@ for i in max_pos do
 					if Length(IntersectionSet(Flat(link(eta[i],sigma1)), sigma2)) = 0 then
 						#d
 						case:='d';
-						if debug > 1 then
-							Print("b=2 -> d\n");
-						fi;
+						Print("b=2 -> d\n");
 					else
 						#gh
 						if degree(eta[i])[IntersectionSet(sigma1,sigma2)[1]] > 4 then
 							#g
 							case:='g';
-							if debug > 1 then
-								Print("b=2 -> g\n");
-							fi;
+							Print("b=2 -> g\n");
 						else
 							#h
 							case:='h';
-							if debug > 1 then
-								Print("b=2 -> h\n");
-							fi;
+							Print("b=2 -> h\n");
 						fi;
 					fi;
 				elif Length(IntersectionSet(link(eta[i],sigma1), link(eta[i],sigma2))) = 1 then
 					#f
 					case:='f';
-					if debug > 1 then
-						Print("b=2 -> f\n");
-					fi;
+					Print("b=2 -> f\n");
 				else
 					#jk
 					if Set(Union(Difference(sigma1,sigma2),Difference(sigma2,sigma1))) in tempve[2][2] then
 						#k
 						case:='k';
-						if debug > 1 then
-							Print("b=2 -> k\n");
-						fi;
+						Print("b=2 -> k\n");
 					else
 						#j
 						case:='j';
-						if debug > 1 then
-							Print("b=2 -> j\n");
-						fi;
+						Print("b=2 -> j\n");
 					fi;							
 				fi;
 			fi;
@@ -1153,10 +1358,7 @@ for i in max_pos do
 
 				ori_eta[i]:=ori_check([eta[i-1],eta[i]],ori_eta[i-1]);
 				
-				if debug > 0 then
-					Print("decomposition -> return ",0,"\n");
-				fi;
-				
+				Print("decomposition -> return ",0,"\n");
 				return 0;
 
 			elif case='1' then
@@ -1223,11 +1425,7 @@ for i in max_pos do
 				# p,q,r
 				
 				temp_res:=count_ro(count_pq(eta[i],w1,w2,w3,w4,v));
-				
-				if debug > 0 then
-					Print("decomposition -> return ",temp_res,"\n");
-				fi;
-				
+				Print("decomposition -> return ",temp_res,"\n");
 				return temp_res;
 				
 			elif case='2' then
@@ -1294,11 +1492,7 @@ for i in max_pos do
 				# p,q,r
 				
 				temp_res:=count_ro(count_pq(eta[i],w4,w3,w2,w1,v));
-				
-				if debug > 0 then
-					Print("decomposition -> return ",temp_res,"\n");
-				fi;
-				
+				Print("decomposition -> return ",temp_res,"\n");
 				return temp_res;
 				
 			elif case='d' then
@@ -1373,11 +1567,7 @@ for i in max_pos do
 				# p,q,r
 				
 				temp_res:=-count_ro(count_pq(eta[i],w1,w2,w3,w4,v));
-				
-				if debug > 0 then
-					Print("decomposition -> return ",temp_res,"\n");
-				fi;
-				
+				Print("decomposition -> return ",temp_res,"\n");
 				return temp_res;
 					
 			elif case='c' then
@@ -1437,11 +1627,7 @@ for i in max_pos do
 				# p,q,r
 				
 				temp_res:=-count_ro(count_pq(eta[i],w1,w2,w3,w4,v));
-				
-				if debug > 0 then
-					Print("decomposition -> return ",temp_res,"\n");
-				fi;
-				
+				Print("decomposition -> return ",temp_res,"\n");
 				return temp_res;
 				
 			elif case='e' then
@@ -1457,9 +1643,7 @@ for i in max_pos do
 				
 				if Length(link(eta[i],[v1]))=4 and Length(link(eta[i],[v2]))=4 then
 				
-					if debug > 1 then
-						Print("  ->special case\n");
-					fi;
+					Print("  ->special case\n");
 									
 					u1:=Difference(sigma1,[v1])[1];
 					u2:=Difference(sigma2,[v2])[1];
@@ -1530,11 +1714,7 @@ for i in max_pos do
 					temp1:=simp_ori(eta[i-1],temp_ori,[u1,w1,v2]);
 					
 					temp_res:=temp1 * (count_omega(Length(link(eta[i-1],[w1]))-3)-count_omega(Length(link(eta[i-1],[u1]))-1)-count_omega(Length(link(eta[i-1],[v2]))-3)+count_omega(Length(link(eta[i-1],[u2]))-2)-count_omega(Length(link(eta[i+5],[w2]))-3)+count_omega(Length(link(eta[i+5],[u2]))-1)+count_omega(Length(link(eta[i+5],[v1]))-3)-count_omega(Length(link(eta[i+5],[u1]))-2));
-					
-					if debug > 0 then
-						Print("decomposition -> return ",temp_res,"\n");
-					fi;
-					
+					Print("decomposition -> return ",temp_res,"\n");
 					return temp_res;
 					
 				else
@@ -1576,11 +1756,7 @@ for i in max_pos do
 					# p,q,r
 					
 					temp_res:=temp3 * (-count_ro([0,Length(link(eta[i],[v1]))-3])+count_ro([0,Length(link(eta[i],[v2]))-3]));
-					
-					if debug > 0 then
-						Print("decomposition -> return ",temp_res,"\n");
-					fi;
-					
+					Print("decomposition -> return ",temp_res,"\n");
 					return temp_res;
 					
 				fi;
@@ -1635,11 +1811,7 @@ for i in max_pos do
 				# p,q,r
 				
 				temp_res:=temp3 * (count_ro([0,Length(link(eta[i],[v1]))-4])-count_ro([0,Length(link(eta[i],[v2]))-2]));
-				
-				if debug > 0 then
-					Print("decomposition -> return ",temp_res,"\n");
-				fi;
-				
+				Print("decomposition -> return ",temp_res,"\n");
 				return temp_res;
 				
 			elif case='g' then
@@ -1648,6 +1820,7 @@ for i in max_pos do
 				#	\  /\  /
 				#	 \/__\/
 				
+				# problems
 				# two subcases here
 				
 				u:=Intersection(sigma1,sigma2)[1];
@@ -1661,9 +1834,7 @@ for i in max_pos do
 					
 					# easy case
 					
-					if debug > 1 then
-						Print("  ->easy case - u=",u,", v1=",v1,", v2=",v2,"\n");
-					fi;
+					Print("  ->easy case - u=",u,", v1=",v1,", v2=",v2,"\n");
 					
 					# p,q,r
 					
@@ -1737,19 +1908,13 @@ for i in max_pos do
 					# p,q,r
 					
 					temp_res:=temp5 * (count_omega(p)-count_omega(q)-count_omega(r)+count_omega(kk)+count_omega(tempp)-count_omega(tempq)-count_omega(tempr)+count_omega(tempk));
-					
-					if debug > 0 then
-						Print("decomposition -> return ",temp_res,"\n");
-					fi;
-					
+					Print("decomposition -> return ",temp_res,"\n");
 					return temp_res;
 				
 				else								
 					#hard one
 					
-					if debug > 1 then
-						Print("  ->hard case\n");
-					fi;
+					Print("  ->hard case\n");
 					
 					w4:=Set(Flat(link(eta[i-1],Set([u,w1]))))[1];
 					w5:=Set(Flat(link(eta[i-1],Set([u,w1]))))[2];
@@ -1854,9 +2019,7 @@ for i in max_pos do
 					kk:=Length(link(eta[i-1],[w1]))-2;
 					
 					temp_res:=temp5 * (temp_res + count_omega(p)-count_omega(q)-count_omega(r)+count_omega(kk)-count_omega(tempp)+count_omega(tempq)+count_omega(tempr)-count_omega(tempk));
-					if debug > 0 then
-						Print("decomposition -> return ",temp_res,"\n");
-					fi;
+					Print("decomposition -> return ",temp_res,"\n");
 					return temp_res;
 				
 				fi;
@@ -1917,9 +2080,7 @@ for i in max_pos do
 				# p,q,r
 				
 				temp_res:=-temp4 * (count_omega(Length(link(eta[i-1],[w2]))-2)-count_omega(Length(link(eta[i-1],[v2]))-3)-count_omega(Length(link(eta[i-1],[v1]))-1)+count_omega(Length(link(eta[i-1],[w1]))-3));
-				if debug > 0 then
-					Print("decomposition -> return ",temp_res,"\n");
-				fi;
+				Print("decomposition -> return ",temp_res,"\n");
 				return temp_res;
 			
 			elif case='i' then
@@ -2008,19 +2169,13 @@ for i in max_pos do
 				# p,q,r
 				
 				if w3=v2 then
-					if debug > 1 then
-						Print("  ->w3=v2\n");
-					fi;
+					Print("  ->w3=v2\n");
 					temp_res:=temp_res - count_ro([0,Length(link(eta[i-1],[w1]))-4]) + count_ro([0,1]);
-					if debug > 0 then
-						Print("decomposition -> return ",temp_res,"\n");
-					fi;
+					Print("decomposition -> return ",temp_res,"\n");
 					return temp_res;
 				else
 					temp_res:=temp_res + count_ro(count_pq(eta[i+2],u1,w3,u2,v2,w1));
-					if debug > 0 then
-						Print("decomposition -> return ",temp_res,"\n");
-					fi;
+					Print("decomposition -> return ",temp_res,"\n");
 					return temp_res;
 				fi;
 								
@@ -2062,9 +2217,7 @@ for i in max_pos do
 				# p,q,r
 				
 				temp_res:=2*count_omega(Length(link(eta[i-1],[u2]))-3)-2*count_omega(Length(link(eta[i-1],[u1]))-3);
-				if debug > 0 then
-					Print("decomposition -> return ",temp_res,"\n");
-				fi;
+				Print("decomposition -> return ",temp_res,"\n");
 				return temp_res;
 				
 			elif case='k' then
@@ -2142,9 +2295,7 @@ for i in max_pos do
 				# з , -з, 2б, 2б
 				
 				temp_res:=count_ro(count_pq(eta[i-1],w2,w1,w3,w4,u1)) - count_ro(count_pq(eta[i-1],w3,w4,w2,w1,u2)) + 2*count_omega(Length(link(eta[i],[w2]))-3) - 2*count_omega(Length(link(eta[i],[w1]))-3);
-				if debug > 0 then
-					Print("decomposition -> return ",temp_res,"\n");
-				fi;
+				Print("decomposition -> return ",temp_res,"\n");
 				return temp_res;
 				
 			fi;
@@ -2162,9 +2313,7 @@ for i in max_pos do
 			if (deg_f[j]=4) and (deg_res[j]=4) then
 				##here change eta - case 3 deg 4
 				
-				if debug > 1 then
-					Print("b=3 -> deg 4, j=",j,"\n");
-				fi;
+				Print("b=3 -> deg 4, j=",j,"\n");
 				
 				temp_faces:=[[],[]];
 				
@@ -2220,33 +2369,24 @@ for i in max_pos do
 				
 				if Length(temp)=0 then
 				
-					if debug > 0 then
-						Print("decomposition -> return ",0,"\n");
-					fi;
-					
+					Print("decomposition -> return ",0,"\n");
 					return 0;
 				
 				elif temp=[v1] then
 				
-					if debug > 1 then
-						Print("  ->intersection - v1\n");
- 					fi;
+					Print("  ->intersection - v1\n");
  				
 					if deg_f[v1]<deg_res[v1] then
 						temp2:=IntersectionSet(Set(Flat(link(eta[i],[v1]))),U([eta[i+1],eta[i+2]]));
 						if simp_ori(eta[i+1],temp_ori,[temp2[1],v1,temp2[2]])=1 then
 							#COUNT->RETURN
 							temp_res:=count_ro(count_pq(eta[i],temp2[2],temp2[1],j,u1,v1));
-							if debug > 0 then
-								Print("decomposition -> return ",temp_res,"\n");
-							fi;
+							Print("decomposition -> return ",temp_res,"\n");
 							return temp_res;
 						else
 							#COUNT->RETURN
 							temp_res:=count_ro(count_pq(eta[i],temp2[1],temp2[2],j,u1,v1));
-							if debug > 0 then
-								Print("decomposition -> return ",temp_res,"\n");
-							fi;
+							Print("decomposition -> return ",temp_res,"\n");
 							return temp_res;
 						fi;												
 					else
@@ -2261,41 +2401,31 @@ for i in max_pos do
 						if simp_ori(eta[i+1],temp_ori,[temp3,v1,temp2[1]])=1 then
 							#COUNT->RETURN
 							temp_res:=-count_ro(count_pq(eta[i],temp2[1],temp2[2],j,u1,v1));
-							if debug > 0 then
-								Print("decomposition -> return ",temp_res,"\n");
-							fi;
+							Print("decomposition -> return ",temp_res,"\n");
 							return temp_res;
 						else
 							#COUNT->RETURN
 							temp_res:=-count_ro(count_pq(eta[i],temp2[2],temp2[1],j,u1,v1));
-							if debug > 0 then
-								Print("decomposition -> return ",temp_res,"\n");
-							fi;
+							Print("decomposition -> return ",temp_res,"\n");
 							return temp_res;
 						fi;										
 					fi;
 				
  				elif temp=[u1] then
  				
- 					if debug > 1 then
- 						Print("  ->intersection - u1\n");
- 					fi;
+ 					Print("  ->intersection - u1\n");
  				
  					if deg_f[u1]<deg_res[u1] then
 						temp2:=IntersectionSet(Set(Flat(link(eta[i],[u1]))),U([eta[i+1],eta[i+2]]));
 						if simp_ori(eta[i+1],temp_ori,[temp2[1],u1,temp2[2]])=1 then
 							#COUNT->RETURN
 							temp_res:=-count_ro(count_pq(eta[i],temp2[2],temp2[1],v1,v2,u1));
-							if debug > 0 then
-								Print("decomposition -> return ",temp_res,"\n");
-							fi;
+							Print("decomposition -> return ",temp_res,"\n");
 							return temp_res;
 						else
 							#COUNT->RETURN
 							temp_res:=-count_ro(count_pq(eta[i],temp2[1],temp2[2],v1,v2,u1));
-							if debug > 0 then
-								Print("decomposition -> return ",temp_res,"\n");
-							fi;
+							Print("decomposition -> return ",temp_res,"\n");
 							return temp_res;
 						fi;												
 					else
@@ -2310,41 +2440,31 @@ for i in max_pos do
 						if simp_ori(eta[i+1],temp_ori,[temp3,u1,temp2[1]])=1 then
 							#COUNT->RETURN
 							temp_res:=count_ro(count_pq(eta[i],temp2[1],temp2[2],v1,v2,u1));
-							if debug > 0 then
-								Print("decomposition -> return ",temp_res,"\n");
-							fi;
+							Print("decomposition -> return ",temp_res,"\n");
 							return temp_res;
 						else
 							#COUNT->RETURN
 							temp_res:=count_ro(count_pq(eta[i],temp2[2],temp2[1],v1,v2,u1));
-							if debug > 0 then
-								Print("decomposition -> return ",temp_res,"\n");
-							fi;
+							Print("decomposition -> return ",temp_res,"\n");
 							return temp_res;
 						fi;										
 					fi;
 				
 				elif temp=[v2] then
 					
-					if debug > 1 then
-						Print("  ->intersection - v2\n");
-					fi;
+					Print("  ->intersection - v2\n");
 
 					if deg_f[v2]<deg_res[v2] then
 						temp2:=IntersectionSet(Set(Flat(link(eta[i],[v2]))),U([eta[i+1],eta[i+2]]));
 						if simp_ori(eta[i+1],temp_ori,[temp2[1],v2,temp2[2]])=1 then
 							#COUNT->RETURN
 							temp_res:=count_ro(count_pq(eta[i],temp2[2],temp2[1],u1,j,v2));
-							if debug > 0 then
-								Print("decomposition -> return ",temp_res,"\n");
-							fi;
+							Print("decomposition -> return ",temp_res,"\n");
 							return temp_res;
 						else
 							#COUNT->RETURN
 							temp_res:=count_ro(count_pq(eta[i],temp2[1],temp2[2],u1,j,v2));
-							if debug > 0 then
-								Print("decomposition -> return ",temp_res,"\n");
-							fi;
+							Print("decomposition -> return ",temp_res,"\n");
 							return temp_res;
 						fi;												
 					else
@@ -2359,71 +2479,55 @@ for i in max_pos do
 						if simp_ori(eta[i+1],temp_ori,[temp3,v2,temp2[1]])=1 then
 							#COUNT->RETURN
 							temp_res:=-count_ro(count_pq(eta[i],temp2[1],temp2[2],u1,j,v2));
-							if debug > 0 then
-								Print("decomposition -> return ",temp_res,"\n");
-							fi;
+							Print("decomposition -> return ",temp_res,"\n");
 							return temp_res;
 						else
 							#COUNT->RETURN
 							temp_res:=-count_ro(count_pq(eta[i],temp2[2],temp2[1],u1,j,v2));
-							if debug > 0 then
-								Print("decomposition -> return ",temp_res,"\n");
-							fi;
+							Print("decomposition -> return ",temp_res,"\n");
 							return temp_res;
 						fi;										
 					fi;
  				
  				elif temp=Set([u1,v2]) then
  				
- 					if debug > 1 then
- 						Print("  ->intersection - [u1,v2]\n");
- 					fi;
+ 					Print("  ->intersection - [u1,v2]\n");
  					
  					if deg_f[u1]<deg_res[u1] then
  				        	tempq:=deg_f[u1]-3;
  				        	tempp:=deg_f[v2]-3;
  				        	
  					 	temp_res:=count_ro([0,tempq])-count_ro([0,tempp]);
- 				        	if debug > 0 then
- 				        		Print("decomposition -> return ",temp_res,"\n");
- 				        	fi;
+ 				        	Print("decomposition -> return ",temp_res,"\n");
  				        	return temp_res;
  					else
  						tempq:=deg_f[u1]-4;
  				        	tempp:=deg_f[v2]-2;
  				        	
  				        	temp_res:=-count_ro([0,tempq])+count_ro([0,tempp]);
- 				        	if debug > 0 then
- 				        		Print("decomposition -> return ",temp_res,"\n");
- 				        	fi;
+ 				        	Print("decomposition -> return ",temp_res,"\n");
  				        	return temp_res;
  					fi;
 
  				elif temp=Set([u1,v1]) then
  					
- 					if debug > 1 then
- 						Print("  ->intersection - [u1,v1]\n");
- 					fi;
+ 					Print("  ->intersection - [u1,v1]\n");
  					
  					if deg_f[u1]<deg_res[u1] then
  				        	tempq:=deg_f[v1]-3;
  				        	tempp:=deg_f[u1]-3;
  				        	
  				        	temp_res:=count_ro([0,tempq])-count_ro([0,tempp]);
- 				        	if debug > 0 then
- 				        		Print("decomposition -> return ",temp_res,"\n");
- 				        	fi;	        	
+ 				        	Print("decomposition -> return ",temp_res,"\n");		        	
  				        	return temp_res;
  					else
  						tempq:=deg_f[v1]-2;
  				        	tempp:=deg_f[u1]-4;
  				        	
  				        	temp_res:=-count_ro([0,tempq])+count_ro([0,tempp]);
-				        	if debug > 0 then
-				        		Print("decomposition -> return ",temp_res,"\n");
-				        	fi;
-				        	return temp_res;
-					fi;
+ 				        	Print("decomposition -> return ",temp_res,"\n"); 				        	
+ 				        	return temp_res;
+ 					fi;
  				
  				fi;
 			fi;
@@ -2435,9 +2539,7 @@ for i in max_pos do
 					if (deg_f[k]=5) and (deg_res[k]=4) then
 						##here change eta case 3 deg 4,5
 						
-						if debug > 1 then
-							Print("b=3 -> deg 4-5 - k=",k,", j=",j,"\n");
-						fi;
+						Print("b=3 -> deg 4-5 - k=",k,", j=",j,"\n");
 						
 						temp:=Set(Flat(link(eta[i],[j])));
 						UniteSet(temp,link(eta[i],[k]));
@@ -2608,7 +2710,7 @@ for i in max_pos do
  								InsertElement(ori_eta,ori_check([eta[i+2],eta[i+3]],ori_eta[i+2]),i+3);
 				 				
 								
-								temp_res:=temp_res+count_value_ghi([eta[i+1],eta[i+4]],Set([v1,k]),edge,ori_eta[i+1]);
+								temp_res:=temp_res+count_with_intersection([eta[i+1],eta[i+4]],Set([v1,k]),edge,ori_eta[i+1]);
 								
 								#MORE WORK HERE, only one cycle done from 3
 								#now done
@@ -2646,7 +2748,7 @@ for i in max_pos do
 				 				InsertElement(ori_eta,ori_check([eta[i],eta[i+1]],ori_eta[i]),i+1);
  								InsertElement(ori_eta,ori_check([eta[i+1],eta[i+2]],ori_eta[i+1]),i+2);
  								
- 								temp_res:=temp_res+count_value_ghi([eta[i],eta[i+3]],Set([u,w]),edge,ori_eta[i]);
+ 								temp_res:=temp_res+count_with_intersection([eta[i],eta[i+3]],Set([u,w]),edge,ori_eta[i]);
 
 				 				######
 				 				
@@ -2685,12 +2787,9 @@ for i in max_pos do
 								
 								#count p,q,r				##TO DO
 								
-								temp_res:=temp_res+count_value_ghi([eta[i+6],eta[i+9]],Set([w1,w2]),edge,ori_eta[i+6]);
+								temp_res:=temp_res+count_with_intersection([eta[i+6],eta[i+9]],Set([w1,w2]),edge,ori_eta[i+6]);
 								
-								if debug > 0 then
-									Print("decomposition -> return ",temp_res,"\n");
-								fi;
-								
+								Print("decomposition -> return ",temp_res,"\n");
 								return temp_res;
 							fi;
 						od;
@@ -2776,7 +2875,7 @@ for i in max_pos do
 							fi;
 						od;
 						
-						temp_res:=count_value_ghi([eta[i-1],eta[i]],sigma1,edge,ori_eta[i-1])+count_value_ghi([eta[i],eta[i+1]],sigma2,edge,ori_eta[i]);
+						temp_res:=count_with_intersection([eta[i-1],eta[i]],sigma1,edge,ori_eta[i-1])+count_with_intersection([eta[i],eta[i+1]],sigma2,edge,ori_eta[i]);
 					
 						u3:=Difference(temp1,[w])[1];
 						
@@ -2828,15 +2927,8 @@ for i in max_pos do
 						#p,q,r
 
 						# so, 2 cycles
-						
-						if debug > 1 then
-							Print("b=4 -> 2 cycles \n");
-						fi;
-						
-						if debug > 0 then
-							Print("decomposition -> return ",temp_res,"\n");
-						fi;
-						
+						Print("b=4 -> 2 cycles \n");
+						Print("decomposition -> return ",temp_res,"\n");
 						return temp_res;
 					
 					fi;
@@ -2873,7 +2965,7 @@ for i in max_pos do
 					
 					# p,q,r
 					
-					temp_res:=count_value_ghi([eta[i-1],eta[i]],Set([w1,v2]),Set([v1,w4]),ori_eta[i-1]) + count_value_ghi([eta[i],eta[i+1]],Set([u2,v2]),Set([v1,w4]),ori_eta[i]);
+					temp_res:=count_with_intersection([eta[i-1],eta[i]],Set([w1,v2]),Set([v1,w4]),ori_eta[i-1]) + count_with_intersection([eta[i],eta[i+1]],Set([u2,v2]),Set([v1,w4]),ori_eta[i]);
 					
 					##
 					
@@ -2912,21 +3004,15 @@ for i in max_pos do
 					
 					# p,q,r
 					
-					if debug > 1 then
-						Print("b=4 -> extra case\n");
-					fi;
-					
-					if debug > 0 then
-						Print("decomposition -> return ",temp_res,"\n");
-					fi;
-					
+					Print("  ->LAST CASE!\n");
+					Print("decomposition -> return ",temp_res,"\n");
 					return temp_res;
 				
 				fi;
 			
 			else
 			
-				temp_res:=count_value_ghi([eta[i-1],eta[i]],sigma1,sigma2,ori_eta[i-1]);
+				temp_res:=count_with_intersection([eta[i-1],eta[i]],sigma1,sigma2,ori_eta[i-1]);
 				
 				if deg_f[sigma1[1]]=5 then
 					u1:=sigma1[1];
@@ -2953,13 +3039,8 @@ for i in max_pos do
 				
 				ori_eta[i]:=ori_check([eta[i-1],eta[i]],ori_eta[i-1]);
 				
-				if debug > 1 then
-					Print("b=4 -> 1 cycle \n");
-				fi;
-				
-				if debug > 0 then
-					Print("decomposition -> return ",temp_res,"\n");
-				fi;
+				Print("b=4 -> 1 cycle \n");
+				Print("decomposition -> return ",temp_res,"\n");
 				return temp_res;
 				
 			fi;
@@ -2970,9 +3051,7 @@ for i in max_pos do
 		deg_f:=degree(eta[i]);
 		deg_res:=degree(eta[i+1]);
 		
-		if debug > 1 then
-			Print("b=5\n");
-		fi;
+		Print("b=5\n");
 		
 		for k in [1..Length(deg_f)] do
 			if (deg_f[k]=5) and not (k in U([eta[i],eta[i+1]])) then
@@ -3034,9 +3113,7 @@ for i in max_pos do
 							temp:=IntersectionSet(Set([v,v1,v2]),U([eta[i+1],eta[i+2]]));
 							
 							if Length(temp)=0 then
-								if debug > 0 then
-									Print("decomposition -> return ",0,"\n");
-								fi;
+								Print("decomposition -> return ",0,"\n");
 								return 0;
 							elif temp=[v1] then
 								if deg_f[v1]<deg_res[v1] then
@@ -3050,9 +3127,7 @@ for i in max_pos do
 									fi;
 									
 									temp_res:=count_ro(count_pq(eta[i],w1,w2,v,k,v1));
-									if debug > 0 then
-										Print("decomposition -> return ",temp_res,"\n");
-									fi;
+									Print("decomposition -> return ",temp_res,"\n");
 									return temp_res;
 								else
 									w3:=Difference(Difference(U([eta[i],eta[i+1]]),Set(Flat(link(eta[i],[v1])))),[v1]);
@@ -3066,9 +3141,7 @@ for i in max_pos do
 									fi;
 									
 									temp_res:=-count_ro(count_pq(eta[i],w1,w2,v,k,v1));
-									if debug > 0 then
-										Print("decomposition -> return ",temp_res,"\n");
-									fi;
+									Print("decomposition -> return ",temp_res,"\n");
 									return temp_res;
 								fi;
 							elif temp=[v] then
@@ -3083,9 +3156,7 @@ for i in max_pos do
 									fi;
 									
 									temp_res:=-count_ro(count_pq(eta[i],w1,w2,v2,v1,v));
-									if debug > 0 then
-										Print("decomposition -> return ",temp_res,"\n");
-									fi;
+									Print("decomposition -> return ",temp_res,"\n");
 									return temp_res;
 								else
 									w3:=Difference(Difference(U([eta[i],eta[i+1]]),Set(Flat(link(eta[i],[v])))),[v]);
@@ -3099,9 +3170,7 @@ for i in max_pos do
 									fi;
 									
 									temp_res:=count_ro(count_pq(eta[i],w1,w2,v2,v1,v));
-									if debug > 0 then
-										Print("decomposition -> return ",temp_res,"\n");
-									fi;
+									Print("decomposition -> return ",temp_res,"\n");
 									return temp_res;
 								fi;
 							elif temp=[v2] then
@@ -3116,9 +3185,7 @@ for i in max_pos do
 									fi;
 									
 									temp_res:=count_ro(count_pq(eta[i],w1,w2,k,v,v2));
-									if debug > 0 then
-										Print("decomposition -> return ",temp_res,"\n");
-									fi;
+									Print("decomposition -> return ",temp_res,"\n");
 									return temp_res;
 								else
 									w3:=Difference(Difference(U([eta[i],eta[i+1]]),Set(Flat(link(eta[i],[v2])))),[v2]);
@@ -3132,37 +3199,27 @@ for i in max_pos do
 									fi;
 									
 									temp_res:=-count_ro(count_pq(eta[i],w1,w2,k,v,v2));
-									if debug > 0 then
-										Print("decomposition -> return ",temp_res,"\n");
-									fi;
+									Print("decomposition -> return ",temp_res,"\n");
 									return temp_res;
 								fi;
 							elif temp=Set([v1,v]) then
 								if deg_f[v]<deg_res[v] then
 									temp_res:=count_ro([0,Length(link(eta[i],[v]))-3])-count_ro([0,Length(link(eta[i],[v1]))-3]);
-									if debug > 0 then
-										Print("decomposition -> return ",temp_res,"\n");
-									fi;
+									Print("decomposition -> return ",temp_res,"\n");
 									return temp_res;
 								else
 									temp_res:=-count_ro([0,Length(link(eta[i],[v]))-4])+count_ro([0,Length(link(eta[i],[v1]))-2]);
-									if debug > 0 then
-										Print("decomposition -> return ",temp_res,"\n");
-									fi;
+									Print("decomposition -> return ",temp_res,"\n");
 									return temp_res;
 								fi;
 							elif temp=Set([v,v2]) then
 								if deg_f[v]<deg_res[v] then
 									temp_res:=count_ro([0,Length(link(eta[i],[v2]))-3])-count_ro([0,Length(link(eta[i],[v]))-3]);
-									if debug > 0 then
-										Print("decomposition -> return ",temp_res,"\n");
-									fi;
+									Print("decomposition -> return ",temp_res,"\n");
 									return temp_res;
 								else
 									temp_res:=-count_ro([0,Length(link(eta[i],[v2]))-4])+count_ro([0,Length(link(eta[i],[v]))-2]);
-									if debug > 0 then
-										Print("decomposition -> return ",temp_res,"\n");
-									fi;
+									Print("decomposition -> return ",temp_res,"\n");
 									return temp_res;
 								fi;
 								
@@ -3199,16 +3256,11 @@ for i in max_pos do
 			
 			ori_eta[i]:=ori_check([eta[i-1],eta[i]],ori_eta[i-1]);
 			
-			if debug > 1 then
-				Print("b=6 - Intersection of U - ", temp3, "\n");
-			fi;
+			Print("b=6 - Intersection of U - ", temp3, "\n");
 								
 			if temp3=[] then
 				
-				if debug > 0 then
-					Print("decomposition -> return ",0,"\n");
-				fi;
-				
+				Print("decomposition -> return ",0,"\n");
 				return 0;
 				
 			elif Length(temp3)=1 then
@@ -3238,16 +3290,10 @@ for i in max_pos do
 					w2:=temp5[1];
 				fi;
 				
-				if debug > 1 then
-					Print("  ->intersection - 1 vertex - u=",u,"\n");
-				fi;
+				Print("  ->intersection - 1 vertex - u=",u,"\n");
 				
 				temp_res:=-count_ro(count_pq(eta[i],v2,v1,w2,w1,u));
-			
-				if debug > 0 then
-					Print("decomposition -> return ",temp_res,"\n");
-				fi;
-				
+				Print("decomposition -> return ",temp_res,"\n");
 				return temp_res;
 				
 			elif Length(temp3)=2 then
@@ -3266,17 +3312,11 @@ for i in max_pos do
 					u2:=temp3[1];
 				fi;
 						
-				if debug > 1 then
-					Print("  ->intersection - 2 vertices - u1=",u1,", u2=",u2,"\n");
-				fi;
+				Print("  ->intersection - 2 vertices - u1=",u1,", u2=",u2,"\n");
 				
 				
 				temp_res:=-count_ro([0,Length(link(eta[i],[u1]))-2])+count_ro([0,Length(link(eta[i],[u2]))-2]);
-				
-				if debug > 0 then
-					Print("decomposition -> return ",temp_res,"\n");
-				fi;
-				
+				Print("decomposition -> return ",temp_res,"\n");
 				return temp_res;
 				
 			fi;
