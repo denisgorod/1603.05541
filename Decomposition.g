@@ -1,3 +1,5 @@
+##### Compile the file Gamma2.g, not this one #####
+
 ####### Some variables ##########
 
 ################################### General functions #####################################

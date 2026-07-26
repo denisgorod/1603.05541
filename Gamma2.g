@@ -157,8 +157,8 @@ for simplex in Pfaces[Pdim - 4] do
 			ori_eta[i]:=ori_check([eta[i-1],eta[i]],ori_eta[i-1]);
 		od;
 		
-		eta:=ReverseList(eta);
-		ori_eta:=ReverseList(ori_eta);
+		eta:=reverse_list(eta);
+		ori_eta:=reverse_list(ori_eta);
 		
 		Remove(eta);
 		Remove(ori_eta);
