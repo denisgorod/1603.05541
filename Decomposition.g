@@ -969,6 +969,59 @@ end;
 
 
 ##
+# Every case chain in decomposition() is a closed list of configurations with
+# no fallback branch.  When a configuration falls outside its list the function
+# drops out of the "for i in max_pos" loop without a return, and GAP reports
+# that far from the cause -- as "must return a value" at Pt:=Pt+decomposition(...)
+# in Gamma2.g -- or, when another position of max_pos happens to return first,
+# not at all: the peak is silently skipped and the run continues on a chain that
+# was never decomposed.
+#
+# record_unhandled captures the configuration instead, so an uncovered case is
+# reported where it occurs and stays available afterwards in unhandled_cases
+# for deriving the missing case from the configurations that actually arise.
+
+unhandled_cases:=[];
+
+record_unhandled:=function(tag, i, eta, ori_eta, extra)
+
+	local before, after, U_before, U_after, entry;
+
+	if i > 1 then before:=StructuralCopy(eta[i-1]); else before:=fail; fi;
+	if i < Length(eta) then after:=StructuralCopy(eta[i+1]); else after:=fail; fi;
+
+	if before = fail then U_before:=fail; else U_before:=U([eta[i-1],eta[i]]); fi;
+	if after  = fail then U_after :=fail; else U_after :=U([eta[i],eta[i+1]]); fi;
+
+	entry:=rec( tag      := tag,
+	            position := i,
+	            before   := before,
+	            at       := StructuralCopy(eta[i]),
+	            after    := after,
+	            ori      := StructuralCopy(ori_eta[i]),
+	            degrees  := degree(eta[i]),
+	            U_before := U_before,
+	            U_after  := U_after,
+	            extra    := extra );
+
+	Add(unhandled_cases, entry);
+
+	Print("### decomposition: unhandled case -- ",tag,"\n");
+	Print("###   position i        = ",i,"\n");
+	Print("###   U(eta[i-1],eta[i]) = ",U_before,"\n");
+	Print("###   U(eta[i],eta[i+1]) = ",U_after,"\n");
+	if U_before <> fail and U_after <> fail then
+		Print("###   intersection      = ",IntersectionSet(U_before,U_after),"\n");
+	fi;
+	Print("###   degrees in eta[i] = ",entry.degrees,"\n");
+	Print("###   extra             = ",extra,"\n");
+	Print("###   recorded as unhandled_cases[",Length(unhandled_cases),"]\n");
+
+	return entry;
+
+end;
+
+##
 
 decomposition:=function(eta,ori_eta)
 
@@ -3010,6 +3063,22 @@ for i in max_pos do
 					Print("decomposition -> return ",temp_res,"\n");
 					return temp_res;
 				
+				else
+				
+					# The branch above is the only degree configuration covered for
+					# |U(eta[i-1],eta[i]) cap U(eta[i],eta[i+1])| = 2.  Here eta[i]
+					# carries the maximal difficulty and difficulty_tri(eta[i]) is
+					# 2 mod 3, so eta[i] has minimum degree 5 and the complement
+					# reached here is exactly: at least one of the two shared
+					# vertices has degree >= 6 in eta[i].  Not implemented yet.
+					
+					record_unhandled("b=4, |U1 cap U2| = 2, shared vertices not both of degree 5",
+					                 i, eta, ori_eta,
+					                 rec( sigma1 := sigma1,
+					                      sigma2 := sigma2,
+					                      shared := temp,
+					                      shared_degrees := List(temp, x -> deg_res[x]) ));
+				
 				fi;
 			
 			else
@@ -3325,5 +3394,16 @@ for i in max_pos do
 		fi;		
 	fi;
 od;
+
+# Reaching this point means no position of max_pos produced a value: every
+# position either failed the "eta[i] is the peak" guard or hit a configuration
+# outside its case chain.  Returning nothing here surfaces in Gamma2.g as
+# "must return a value" with none of the state that explains it, so stop here
+# instead, while eta, ori_eta and unhandled_cases are still inspectable.
+
+Error("decomposition: no case matched at any position of max_pos ", max_pos,
+      " (max difficulty ", Maximum(difficulty_eta),
+      ", difficulty mod 6 = ", Maximum(difficulty_eta) mod 6,
+      "); ", Length(unhandled_cases), " configuration(s) recorded in unhandled_cases");
 
 end;
