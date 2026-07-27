@@ -289,8 +289,18 @@ elif Length(PHomologyBasisAll)=1 then
 
 	TransposedMat(P5Bvector);;
 
-	Print(SolutionMat(P5Bvector, Pvector));  	#The last number in the received vector is the proportionality coefficient 
-							#for the first Pontryagin class if the
+	Psolution:=SolutionMat(P5Bvector, Pvector);
+	
+	# The last entry of the solution is the proportionality coefficient for the
+	# first Pontryagin class; the rest only record which boundaries were used.
+	# Printing the whole vector emits one number per (Pdim-3)-face -- 5006 of
+	# them for M^8_15 -- which buried the answer and did not always finish.
+	
+	if Psolution = fail then
+		Print("p1: no solution -- the chain is not in the span of the boundaries and the homology basis\n");
+	else
+		Print("p1 coefficient = ", Psolution[Length(Psolution)], "\n");
+	fi;
 
 fi;
 # SCBoundarySimplex(simplex,orientation(+-,false))
