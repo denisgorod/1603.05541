@@ -243,15 +243,24 @@ PSC:=SC(Pfacets);
 
 # The next is valid only for the case H^4 = Z. This part is easily rewritten in the general case.
 
-PHomologyBasis:=SCHomologyBasisAsSimplices(PSC,Pdim-5)[1][2];
+# SCHomologyBasisAsSimplices returns one entry per generator, each of the form
+# [ torsion, cycle ], where the cycle is a list of [ coefficient, simplex ] pairs.
+# The guards below have to count generators. Reading [1][2] first and then testing
+# its length counts the simplices in the cycle instead: for M^8_15 that is one
+# generator with a six-simplex cycle, so Length(...) was 6, neither branch was
+# taken, and the program printed nothing at all after the main loop.
+
+PHomologyBasisAll:=SCHomologyBasisAsSimplices(PSC,Pdim-5);
 
 P5Boundaries:=[];
 
-if Length(PHomologyBasis)=0 then 
+if Length(PHomologyBasisAll)=0 then 
 	
 	Print("No 4th cohomologies - p1=0\n");
 
-elif Length(PHomologyBasis)=1 then 
+elif Length(PHomologyBasisAll)=1 then 
+	
+	PHomologyBasis:=PHomologyBasisAll[1][2];
 	
 	for simplex in Pfaces[Pdim-3] do
 		Add(P5Boundaries, SCBoundarySimplex(simplex,true));

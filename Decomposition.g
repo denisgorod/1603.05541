@@ -913,13 +913,13 @@ count_with_intersection:=function(bis,bis_edge,edge,ori1)
 		elif v in link_edge then
 			w:=Difference(bis_edge,[v])[1];
 			if simp_ori(bis[1],temp_ori1,[v,link_bis_edge[1],w])=1 and simp_ori(bis[1],temp_ori1,[v,edge[1],edge[2]])=1 then
-				return count_ro(count_pq(bis[1],link_bis_edge[2],link_bis_edge[1],edge[2],edge[1]));
+				return count_ro(count_pq(bis[1],link_bis_edge[2],link_bis_edge[1],edge[2],edge[1],v));
 			elif simp_ori(bis[1],temp_ori1,[v,link_bis_edge[1],w])=1 then
-				return count_ro(count_pq(bis[1],link_bis_edge[2],link_bis_edge[1],edge[1],edge[2]));
+				return count_ro(count_pq(bis[1],link_bis_edge[2],link_bis_edge[1],edge[1],edge[2],v));
 			elif simp_ori(bis[1],temp_ori1,[v,edge[1],edge[2]])=1 then
-				return count_ro(count_pq(bis[1],link_bis_edge[1],link_bis_edge[2],edge[2],edge[1]));
+				return count_ro(count_pq(bis[1],link_bis_edge[1],link_bis_edge[2],edge[2],edge[1],v));
 			elif simp_ori(bis[1],temp_ori1,[v,link_bis_edge[1],w])=-1 and simp_ori(bis[1],temp_ori1,[v,edge[1],edge[2]])=-1 then
-				return count_ro(count_pq(bis[1],link_bis_edge[1],link_bis_edge[2],edge[1],edge[2]));
+				return count_ro(count_pq(bis[1],link_bis_edge[1],link_bis_edge[2],edge[1],edge[2],v));
 			fi;
 		elif v in edge and v in bis_edge then
 			w:=Difference(bis_edge,[v])[1];
@@ -2855,7 +2855,11 @@ for i in max_pos do
 	fi;
 
 	if (difficulty_eta[i] mod 6) = 4 then
-		if difficulty_eta[i]=2*difficulty_tri(eta[i]) then
+		# The even-b setup needs L flanked by two moves, so eta[i-1] must exist;
+		# at i = 1 there is no beta1 and the configuration is simply not present.
+		# Without the i > 1 test the branch indexes eta[0] and dies with
+		# "no method found for []".  Other positions of max_pos still get a turn.
+		if i > 1 and difficulty_eta[i]=2*difficulty_tri(eta[i]) then
 		
 			deg_f:=degree(eta[i-1]);
 			deg_res:=degree(eta[i]);
@@ -2937,16 +2941,28 @@ for i in max_pos do
 						fi;
 					
 					
+						# Paper: "Among the five edges adjacent to v there are at least
+						# three edges such that moves associated with these edges are
+						# defined."  The move on the edge {w,vertex} is defined exactly
+						# when the edge it would create -- the link of {w,vertex} -- is
+						# not already present in L.
+						#
+						# The search used to run over PAIRS of link(w) vertices without
+						# excluding vertex = vertex2, so temp2 filled up with singletons
+						# and with diagonals of the pentagon link(w) rather than with
+						# edges at w.  temp1 has to be an edge at w: the code below takes
+						# u3 := Difference(temp1,[w])[1] and link(eta[i],temp1) from it.
+						
 						temp2:=[];
-						for vertex in Flat(link(eta[i],[w])) do
-							for vertex2 in Flat(link(eta[i],[w])) do
-								temp1:=Set([vertex,vertex2]);
-								if not temp1 in tempve[2] and Length(temp2)<4 then
-									AddSet(temp2, temp1);
-								fi;
-							od;
+						for vertex in Set(Flat(link(eta[i],[w]))) do
+							temp5:=Set([w,vertex]);
+							temp6:=Set(Flat(link(eta[i],temp5)));
+							if Length(temp6)=2 and not temp6 in tempve[2] then
+								AddSet(temp2, temp5);
+							fi;
 						od;
 												
+						temp1:=fail;
 						for edge in temp2 do
 							if not (Set(Flat(link(eta[i-1],edge))) = Set([w1,w2]) and Set(Flat(link(eta[i+1],edge))) = Set([w3,w4])) then
 								temp1:=edge;
@@ -2954,7 +2970,21 @@ for i in max_pos do
 							fi;
 						od;
 						
-						temp_res:=count_with_intersection([eta[i-1],eta[i]],sigma1,edge,ori_eta[i-1])+count_with_intersection([eta[i],eta[i+1]],sigma2,edge,ori_eta[i]);
+						# The paper guarantees a usable edge at some degree-5 vertex off
+						# both moves; if this w has none, move on to the next candidate
+						# rather than reading a stale temp1.
+						
+						if temp1 = fail then
+							continue;
+						fi;
+						
+						# count_with_intersection takes bis_edge as an edge of bis[1].  For the
+						# pair [eta[i-1],eta[i]] that is eta[i-1], where beta1 has already
+						# replaced sigma1 by its link {w1,w2} -- passing sigma1 itself left
+						# link_bis_edge empty and died on link_bis_edge[1].  sigma2 is still
+						# an edge of eta[i], so the second term is already right.
+						
+						temp_res:=count_with_intersection([eta[i-1],eta[i]],Set([w1,w2]),temp1,ori_eta[i-1])+count_with_intersection([eta[i],eta[i+1]],sigma2,temp1,ori_eta[i]);
 					
 						u3:=Difference(temp1,[w])[1];
 						
@@ -3188,7 +3218,10 @@ for i in max_pos do
 			
 			else
 			
-				temp_res:=count_with_intersection([eta[i-1],eta[i]],sigma1,sigma2,ori_eta[i-1]);
+				# Same correction as above: in eta[i-1] the edge sigma1 no longer exists,
+				# its flip put link_{eta[i]}(sigma1) there instead.
+				
+				temp_res:=count_with_intersection([eta[i-1],eta[i]],Set(Flat(link(eta[i],sigma1))),sigma2,ori_eta[i-1]);
 				
 				# v1, u1, v2, u2 are named above, per the paper.
 				
@@ -3197,10 +3230,10 @@ for i in max_pos do
 				w3:=Set(Flat(link(eta[i],sigma2)))[1];
 				w4:=Set(Flat(link(eta[i],sigma2)))[2];
 				
-				Remove(eta[i],Set([u1,v1,w1]));
-				Remove(eta[i],Set([u1,v1,w2]));
-				Remove(eta[i],Set([u2,v2,w3]));
-				Remove(eta[i],Set([u2,v2,w4]));
+				RemoveSet(eta[i],Set([u1,v1,w1]));
+				RemoveSet(eta[i],Set([u1,v1,w2]));
+				RemoveSet(eta[i],Set([u2,v2,w3]));
+				RemoveSet(eta[i],Set([u2,v2,w4]));
 				
 				AddSet(eta[i],Set([u1,w1,w2]));
 				AddSet(eta[i],Set([v1,w1,w2]));
