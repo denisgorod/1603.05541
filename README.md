@@ -127,3 +127,52 @@ chain, rewrites it there, and returns the value the removed elementary cycles
 contribute. A configuration matching no case of a branch is recorded in the
 global `unhandled_cases` — the three consecutive spheres, the orientation, the
 two U-sets and the vertex degrees — and reported.
+
+## Citation
+
+If you use this program, please cite
+
+> D. Gorodkov. *A 15-Vertex Triangulation of the Quaternionic Projective Plane.*
+> Discrete & Computational Geometry **62**(2), 348–373 (2019).
+
+The algorithm realized here is due to Gaifullin:
+
+> A. A. Gaifullin. *Local formulae for combinatorial Pontryagin classes.*
+> Izv. Math. **68**(5), 861–910 (2004).
+>
+> A. A. Gaifullin. *Configuration spaces, bistellar moves, and combinatorial
+> formulae for the first Pontryagin class.* Proc. Steklov Inst. Math. **268**,
+> 70–86 (2010).
+
+The complex M<sup>8</sup><sub>15</sub> is due to Brehm and Kühnel:
+
+> U. Brehm, W. Kühnel. *15-Vertex triangulations of 8-manifolds.*
+> Math. Ann. **294**, 167–193 (1992).
+
+The computation uses GAP and the simpcomp package:
+
+> The GAP Group. *GAP — Groups, Algorithms, and Programming.*
+> <https://www.gap-system.org>
+>
+> F. Effenberger, J. Spreer. *simpcomp — a GAP toolkit for simplicial complexes.*
+
+## Attribution and licensing
+
+The code written for this project — `Gamma2.g`, `Decomposition.g` and the input
+files — is released under the GNU General Public License v3; see `LICENSE`.
+
+`BISTELLAR.g` is not part of that: it is Frank H. Lutz's program BISTELLAR
+(version Nov/2003; the first version, Nov/1997, is by Anders Björner and
+Frank H. Lutz), distributed from
+
+> <http://www.math.tu-berlin.de/diskregeom/stellar/>
+
+and described in
+
+> A. Björner, F. H. Lutz. *Simplicial manifolds, bistellar flips and a 16-vertex
+> triangulation of the Poincaré homology 3-sphere.* Exp. Math. **9**(2),
+> 275–289 (2000).
+
+The copy included here differs from the original only by the additions marked
+with `##` fences, which record the facet list after each flip in `bisfaces` and
+the move itself in `randomelements`. Its terms of use are those of its author.
