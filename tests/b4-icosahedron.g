@@ -11,7 +11,7 @@
 #
 # Run with:  gap -q -b -A -c 'DECOMP:="Decomposition.g";;' tests/b4-icosahedron.g
 
-# degree 5) and reports which of its two sub-branches each configuration takes.
+# It reports which of the last case's two sub-branches each configuration takes.
 Read(DECOMP);
 ICO := Set(List([[1,2,3],[1,3,4],[1,4,5],[1,5,6],[1,2,6],
         [2,3,8],[3,4,9],[4,5,10],[5,6,11],[2,6,7],
