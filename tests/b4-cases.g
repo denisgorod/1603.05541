@@ -21,27 +21,32 @@
 
 Read(DECOMP); Read("tests/b4-lib.g");
 
-# Classify an icosahedron edge pair into the b=4 sub-case it drives.
+# Classify an edge pair into the b = 4 sub-case it drives.  This mirrors the
+# dispatch in decomposition() exactly: v is the degree-5 end of each sigma and u
+# the other end, the last case is v1 and v2 joined by an edge, and it splits on
+# whether the edge u1u2 = {w1,u2} is already present.  (Naming v1/v2 by
+# membership of U1 cap U2 instead -- the pre-rewrite convention -- puts the
+# u1u2-present configurations in the wrong bucket.)
+#
+# Note that on these two spheres every configuration landing in the
+# u1u2-PRESENT bucket has sigma1 and sigma2 sharing a vertex, so u1u2 lies in
+# a triangle with sigma1, gamma(L,sigma1,u1u2) is undefined, and the branch
+# correctly falls back to the generic auxiliary edge. The genuine case --
+# sigma1 and sigma2 disjoint, u1u2 admissible -- is covered separately by
+# tests/b4-case-p.g, which builds it rather than searching for it.
 bucket := function(L, L1, L2, s1, s2)
-    local U1, U2, t, v1, u1, v2, u2, w1;
-    U1 := U([L1,L]); U2 := U([L,L2]);
-    t := IntersectionSet(U1,U2);
-    if Length(t) <= 1 then return "one-cycle (|U1^U2|<=1)"; fi;
-    if Length(t) > 2  then return "generic (|U1^U2|>2)"; fi;
-    if not (degree(L)[t[1]]=5 and degree(L)[t[2]]=5) then return "|U1^U2|=2, not both deg 5"; fi;
-    if s1[1] in t then v1:=s1[1]; u1:=s1[2]; else v1:=s1[2]; u1:=s1[1]; fi;
-    if s2[1] in t then v2:=s2[1]; u2:=s2[2]; else v2:=s2[2]; u2:=s2[1]; fi;
-    # The paper's last case needs v1 and v2 -- the degree-5 ends of sigma1 and
-    # sigma2 -- to be joined by an edge.  The code enters its last case on
-    # |U1 cap U2| = 2 with both shared vertices of degree 5, which is only a
-    # proxy for that; this reports how often the two disagree.
-    if not Set([v1,v2]) in ve_count(L)[2] then
-        return "|U1^U2|=2 but v1v2 NOT an edge (not the paper's last case)";
+    local E, deg, v1, u1, v2, u2, w1, w4;
+    E := ve_count(L)[2]; deg := degree(L);
+    if deg[s1[1]] = 5 then v1:=s1[1]; u1:=s1[2]; else v1:=s1[2]; u1:=s1[1]; fi;
+    if deg[s2[1]] = 5 then v2:=s2[1]; u2:=s2[2]; else v2:=s2[2]; u2:=s2[1]; fi;
+    if not Set([v1,v2]) in E then return "generic (v1v2 not an edge)"; fi;
+    w1 := Difference(Set(Flat(link(L,s1))),[v2]);
+    w4 := Difference(Set(Flat(link(L,Set([u2,v1])))),[v2]);
+    if Length(w1) <> 1 or Length(w4) <> 1 then
+        return "generic (w1 or w4 degenerate)";
     fi;
-    w1 := Difference(Set(Flat(link(L,Set([u1,v1])))),[v2]);
-    if Length(w1) <> 1 then return "last case, v1v2 edge, w1 degenerate"; fi;
-    if Set([w1[1],u2]) in ve_count(L)[2] then return "last case, v1v2 edge, u1u2 PRESENT";
-    else return "last case, v1v2 edge, u1u2 absent"; fi;
+    if Set([w1[1],u2]) in E then return "last case, u1u2 PRESENT";
+    else return "last case, u1u2 absent"; fi;
 end;;
 
 # Run the driver loop on one configuration, auditing the chain after every step.
