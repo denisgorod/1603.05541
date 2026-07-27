@@ -82,31 +82,44 @@ drive := function(L, L1, L2)
     return rec(verdict:="ok", steps:=steps, total:=tot, d_before:=d0, d_after:=d);
 end;;
 
-edges := ve_count(ICO)[2];;
 CAP := 6;;
-res := rec();; plan := rec();;
+res := rec();;
 
-# pass 1: bucket every admissible pair (cheap)
-for s1 in edges do for s2 in edges do if s1 < s2 then
-  L1 := flip(ICO,s1); L2 := flip(ICO,s2);
-  if L1 <> fail and L2 <> fail then
-    b := bucket(ICO,L1,L2,s1,s2);
-    if not IsBound(plan.(b)) then plan.(b) := []; fi;
-    Add(plan.(b), [s1,s2]);
-  fi;
-fi; od; od;
+# Two test objects: the icosahedron (all degree 5, highly symmetric, produces
+# the paper's last case) and one subdivision of it (42 vertices of degree 5 and
+# 6, less symmetric, produces configurations the icosahedron cannot).  For the
+# larger sphere only a slice of the first edge is swept, to keep the run short.
 
-# pass 2: drive up to CAP configurations from each bucket (expensive)
-for b in RecNames(plan) do
-  res.(b) := rec(total:=Length(plan.(b)), n:=0, ok:=0, bad:=[], steps:=[]);
-  for p in plan.(b){[1..Minimum(CAP,Length(plan.(b)))]} do
-    L1 := flip(ICO,p[1]); L2 := flip(ICO,p[2]);
-    r := drive(ICO,L1,L2);
-    res.(b).n := res.(b).n + 1;
-    if r.verdict = "ok" then
-      res.(b).ok := res.(b).ok + 1; Add(res.(b).steps, r.steps);
-    else AddSet(res.(b).bad, r.verdict); fi;
+for OBJ in [ ["icosahedron", ICO, 30], ["subdivided icosahedron", ICO2, 12] ] do
+
+  plan := rec();;
+  edges := ve_count(OBJ[2])[2];;
+
+  for s1 in edges{[1..Minimum(OBJ[3],Length(edges))]} do
+   for s2 in edges do
+    if s1 < s2 then
+      L1 := flip(OBJ[2],s1); L2 := flip(OBJ[2],s2);
+      if L1 <> fail and L2 <> fail then
+        b := Concatenation(OBJ[1], ": ", bucket(OBJ[2],L1,L2,s1,s2));
+        if not IsBound(plan.(b)) then plan.(b) := []; fi;
+        Add(plan.(b), [s1,s2]);
+      fi;
+    fi;
+   od;
   od;
+
+  for b in RecNames(plan) do
+    res.(b) := rec(total:=Length(plan.(b)), n:=0, ok:=0, bad:=[], steps:=[]);
+    for p in plan.(b){[1..Minimum(CAP,Length(plan.(b)))]} do
+      L1 := flip(OBJ[2],p[1]); L2 := flip(OBJ[2],p[2]);
+      r := drive(OBJ[2],L1,L2);
+      res.(b).n := res.(b).n + 1;
+      if r.verdict = "ok" then
+        res.(b).ok := res.(b).ok + 1; Add(res.(b).steps, r.steps);
+      else AddSet(res.(b).bad, r.verdict); fi;
+    od;
+  od;
+
 od;
 
 for b in RecNames(res) do

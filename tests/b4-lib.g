@@ -103,3 +103,33 @@ ICO := Set(List([[1,2,3],[1,3,4],[1,4,5],[1,5,6],[1,2,6],
       [2,3,8],[3,4,9],[4,5,10],[5,6,11],[2,6,7],
       [2,7,8],[3,8,9],[4,9,10],[5,10,11],[6,7,11],
       [7,8,12],[8,9,12],[9,10,12],[10,11,12],[7,11,12]], Set));;
+
+# One subdivision of the icosahedron: each triangle becomes four.  42 vertices
+# (12 of degree 5, 30 of degree 6), 80 triangles, 120 edges.  Minimum degree is
+# still 5, so it also sits in b = 4, but it is large and irregular enough to
+# produce configurations the icosahedron cannot -- in particular ones where the
+# edge u1u2 of the paper's last-case figure is already present.
+subdivide := function(L)
+    local es, n, mid, M, f, a, b, c, ab, bc, ca, e, k;
+    es := ve_count(L)[2];
+    n := Maximum(Flat(L));
+    mid := rec();
+    for e in es do
+        n := n + 1;
+        mid.(Concatenation(String(e[1]),"_",String(e[2]))) := n;
+    od;
+    M := [];
+    for f in L do
+        a := f[1]; b := f[2]; c := f[3];
+        ab := mid.(Concatenation(String(a),"_",String(b)));
+        bc := mid.(Concatenation(String(b),"_",String(c)));
+        ca := mid.(Concatenation(String(a),"_",String(c)));
+        AddSet(M, Set([a,ab,ca]));
+        AddSet(M, Set([b,ab,bc]));
+        AddSet(M, Set([c,ca,bc]));
+        AddSet(M, Set([ab,bc,ca]));
+    od;
+    return Set(M);
+end;;
+
+ICO2 := subdivide(ICO);;

@@ -175,6 +175,45 @@ end;
 
 
 ##
+# A bistellar 1-move on the edge ed is defined in the 2-sphere K exactly when ed
+# has two vertices in its link and the edge that the flip would create is not
+# already present.
+
+flip_defined:=function(K, ed)
+
+	local lk;
+
+	if not ed in ve_count(K)[2] then
+		return false;
+	fi;
+
+	lk:=Set(Flat(link(K, ed)));
+
+	return Length(lk) = 2 and not lk in ve_count(K)[2];
+
+end;
+
+##
+# K with the edge ed flipped: the two triangles on ed are replaced by the two
+# triangles on the edge joining its link.
+
+flip_edge:=function(K, ed)
+
+	local lk, M;
+
+	lk:=Set(Flat(link(K, ed)));
+	M:=StructuralCopy(K);
+
+	RemoveSet(M, Set([ed[1],ed[2],lk[1]]));
+	RemoveSet(M, Set([ed[1],ed[2],lk[2]]));
+	AddSet(M, Set([lk[1],lk[2],ed[1]]));
+	AddSet(M, Set([lk[1],lk[2],ed[2]]));
+
+	return M;
+
+end;
+
+##
 ori_sub:=function(sigma,tau)
 
 	if SignPerm(Sortex(sigma))=SignPerm(Sortex(tau)) then
@@ -2855,399 +2894,175 @@ for i in max_pos do
 	fi;
 
 	if (difficulty_eta[i] mod 6) = 4 then
-		# The even-b setup needs L flanked by two moves, so eta[i-1] must exist;
-		# at i = 1 there is no beta1 and the configuration is simply not present.
-		# Without the i > 1 test the branch indexes eta[0] and dies with
-		# "no method found for []".  Other positions of max_pos still get a turn.
+
+		# The even-b setup needs L = eta[i] flanked by two moves, so eta[i-1] must
+		# exist; at i = 1 there is no beta1 and the configuration is not present.
+
 		if i > 1 and difficulty_eta[i]=2*difficulty_tri(eta[i]) then
-		
-			deg_f:=degree(eta[i-1]);
+
+			# L = eta[i] is the peak; beta1 takes it to eta[i-1] by flipping the
+			# edge sigma1, beta2 to eta[i+1] by flipping sigma2.  L has minimum
+			# degree 5, and one end of each sigma has degree exactly 5 -- the
+			# paper calls those v1 and v2, and the other ends u1 and u2.
+
 			deg_res:=degree(eta[i]);
-			deg_ff:=deg_res;
-			deg_ress:=degree(eta[i+1]);
-			
 			temp_faces:=[ve_count(eta[i-1]),ve_count(eta[i]),ve_count(eta[i+1])];
-			
-			# sigma1 is the edge of L destroyed by beta1, sigma2 the edge destroyed
-			# by beta2.  These have to be tested for edge membership: eta[i] is a
-			# list of triangles, so "element in eta[i]" is never true for a
-			# 2-element set and both sigma were left unassigned -- every b = 4
-			# configuration aborted with "Variable: 'sigma1' must have an assigned
-			# value" before reaching any of the sub-cases.  b = 2 already tests
-			# against ve_count(...)[2]; this matches it.
-			
+
+			sigma1:=fail;
+			sigma2:=fail;
+
 			for element in Combinations(U([eta[i-1],eta[i]]),2) do
 				if element in temp_faces[2][2] and not element in temp_faces[1][2] then
 					sigma1:=Set(element);
 				fi;
 			od;
-				
+
 			for element in Combinations(U([eta[i],eta[i+1]]),2) do
 				if element in temp_faces[2][2] and not element in temp_faces[3][2] then
 					sigma2:=Set(element);
 				fi;
 			od;
-			
-			# Paper, b = 4: "one of the vertices of both sigma1 and sigma2 is of
-			# degree 5.  Let v1 and v2, respectively, be those vertices."  Name them
-			# once, here, for every sub-case below: v1 is the degree-5 end of sigma1
-			# and u1 the other end, v2 the degree-5 end of sigma2 and u2 the other.
-			# Degrees are taken in L = eta[i], the peak of the pair, which is what
-			# deg_res holds here.  Previously u2 and v2 were assigned only inside the
-			# |U1 cap U2| = 2 sub-case, so the other two sub-cases read them unbound.
-			
-			if deg_res[sigma1[1]]=5 then
-				v1:=sigma1[1]; u1:=sigma1[2];
-			else
-				v1:=sigma1[2]; u1:=sigma1[1];
-			fi;
-			
-			if deg_res[sigma2[1]]=5 then
-				v2:=sigma2[1]; u2:=sigma2[2];
-			else
-				v2:=sigma2[2]; u2:=sigma2[1];
-			fi;
-			
-			if Length(IntersectionSet(U([eta[i-1],eta[i]]),U([eta[i],eta[i+1]])))>2 then
-			
-				temp:=U([eta[i-1],eta[i]]);
-				UniteSet(temp,U([eta[i],eta[i+1]]));
-			
-				tempve:=ve_count(eta[i]);
-			
-				for w in [1..Length(deg_ff)] do
-					if deg_ff[w]=5 and not w in temp then
-					
-					
-						# orientation for good notations
-						temp_ori:=ori_spread(eta[i],ori_eta[i]);
-						
-						# v1, u1, v2, u2 are named above, per the paper.
-						
-						if simp_ori(eta[i],temp_ori,[v1,u1,Set(Flat(link(eta[i],sigma1)))[1]])=1 then
-							w1:=Set(Flat(link(eta[i],sigma1)))[1];
-							w2:=Set(Flat(link(eta[i],sigma1)))[2];
-						else
-							w1:=Set(Flat(link(eta[i],sigma1)))[2];
-							w2:=Set(Flat(link(eta[i],sigma1)))[1];
-						fi;
-						
-						if simp_ori(eta[i],temp_ori,[v2,u2,Set(Flat(link(eta[i],sigma2)))[1]])=1 then
-							w3:=Set(Flat(link(eta[i],sigma2)))[1];
-							w4:=Set(Flat(link(eta[i],sigma2)))[2];
-						else
-							w3:=Set(Flat(link(eta[i],sigma2)))[2];
-							w4:=Set(Flat(link(eta[i],sigma2)))[1];
-						fi;
-					
-					
-						# Paper: "Among the five edges adjacent to v there are at least
-						# three edges such that moves associated with these edges are
-						# defined."  The move on the edge {w,vertex} is defined exactly
-						# when the edge it would create -- the link of {w,vertex} -- is
-						# not already present in L.
-						#
-						# The search used to run over PAIRS of link(w) vertices without
-						# excluding vertex = vertex2, so temp2 filled up with singletons
-						# and with diagonals of the pentagon link(w) rather than with
-						# edges at w.  temp1 has to be an edge at w: the code below takes
-						# u3 := Difference(temp1,[w])[1] and link(eta[i],temp1) from it.
-						
-						temp2:=[];
-						for vertex in Set(Flat(link(eta[i],[w]))) do
-							temp5:=Set([w,vertex]);
-							temp6:=Set(Flat(link(eta[i],temp5)));
-							if Length(temp6)=2 and not temp6 in tempve[2] then
-								AddSet(temp2, temp5);
-							fi;
-						od;
-												
-						temp1:=fail;
-						for edge in temp2 do
-							if not (Set(Flat(link(eta[i-1],edge))) = Set([w1,w2]) and Set(Flat(link(eta[i+1],edge))) = Set([w3,w4])) then
-								temp1:=edge;
-								break;
-							fi;
-						od;
-						
-						# The paper guarantees a usable edge at some degree-5 vertex off
-						# both moves; if this w has none, move on to the next candidate
-						# rather than reading a stale temp1.
-						
-						if temp1 = fail then
-							continue;
-						fi;
-						
-						# count_with_intersection takes bis_edge as an edge of bis[1].  For the
-						# pair [eta[i-1],eta[i]] that is eta[i-1], where beta1 has already
-						# replaced sigma1 by its link {w1,w2} -- passing sigma1 itself left
-						# link_bis_edge empty and died on link_bis_edge[1].  sigma2 is still
-						# an edge of eta[i], so the second term is already right.
-						
-						temp_res:=count_with_intersection([eta[i-1],eta[i]],Set([w1,w2]),temp1,ori_eta[i-1])+count_with_intersection([eta[i],eta[i+1]],sigma2,temp1,ori_eta[i]);
-					
-						u3:=Difference(temp1,[w])[1];
-						
-						if simp_ori(eta[i],temp_ori,[w,u3,Set(Flat(link(eta[i],temp1)))[1]])=1 then
-							v3:=Flat(link(eta[i],temp1))[1];
-							v4:=Flat(link(eta[i],temp1))[2];
-						else
-							v3:=Flat(link(eta[i],temp1))[2];
-							v4:=Flat(link(eta[i],temp1))[1];
-						fi;
-						
-						RemoveSet(eta[i], Set([u1,v1,w1]));
-						RemoveSet(eta[i], Set([u1,v1,w2]));
-						RemoveSet(eta[i], Set([w,u3,v4]));
-						RemoveSet(eta[i], Set([w,u3,v3]));
-						
-						AddSet(eta[i], Set([u1,w1,w2]));
-						AddSet(eta[i], Set([u1,v1,w2]));
-						AddSet(eta[i], Set([v3,w,v4]));
-						AddSet(eta[i], Set([v3,u3,v4]));
-						
-						temp4:=ShallowCopy(eta[i]);
-						
-						RemoveSet(temp4, Set([v3,w,v4]));
-						RemoveSet(temp4, Set([v3,u3,v4]));
-						
-						AddSet(temp4, Set([w,u3,v4]));
-						AddSet(temp4, Set([w,u3,v3]));
-						
-						temp5:=ShallowCopy(temp4);
-						
-						RemoveSet(temp5, Set([w3,u2,v2]));
-						RemoveSet(temp5, Set([w4,u2,v2]));
-						
-						AddSet(temp5, Set([w3,v2,w4]));
-						AddSet(temp5, Set([w3,u2,w4]));
-						
-						#change eta
-					
-						InsertElement(eta, temp4, i+1);
-						InsertElement(eta, temp5, i+2);					
-						
-						#orientation
-					
-						ori_eta[i]:=ori_check([eta[i-1],eta[i]],ori_eta[i]);
-						InsertElement(ori_eta,ori_check([eta[i],eta[i+1]],ori_eta[i]),i+1);
-	 					InsertElement(ori_eta,ori_check([eta[i+1],eta[i+2]],ori_eta[i+1]),i+2);
-					 					 	
-						#p,q,r
 
-						# so, 2 cycles
-						Print("b=4 -> 2 cycles \n");
-						Print("decomposition -> return ",temp_res,"\n");
-						return temp_res;
-					
-					fi;
-				od;
-				
-			elif Length(IntersectionSet(U([eta[i-1],eta[i]]),U([eta[i],eta[i+1]])))=2 then
+			if sigma1 = fail or sigma2 = fail then
+				record_unhandled("b=4: could not identify sigma1/sigma2", i, eta, ori_eta, rec());
+				continue;
+			fi;
 
-				temp:=IntersectionSet(U([eta[i-1],eta[i]]),U([eta[i],eta[i+1]]));
-			
-				if  deg_res[temp[1]]=5 and deg_res[temp[2]]=5 then
-				
-					#EXTRA CASE
-					
-					if sigma1[1] in temp then
-						v1:=sigma1[1];
-						u1:=sigma1[2];
+			if deg_res[sigma1[1]]=5 then v1:=sigma1[1]; u1:=sigma1[2];
+			else                         v1:=sigma1[2]; u1:=sigma1[1]; fi;
+
+			if deg_res[sigma2[1]]=5 then v2:=sigma2[1]; u2:=sigma2[2];
+			else                         v2:=sigma2[2]; u2:=sigma2[1]; fi;
+
+			# All three sub-cases of b = 4 have the same shape: choose an auxiliary
+			# edge e such that gamma(L,sigma1,e) and gamma(L,sigma2,e) are both
+			# defined, then replace
+			#
+			#     eta[i-1] <- eta[i] -> eta[i+1]        (peak complexity)
+			#
+			# by the four moves
+			#
+			#     eta[i-1] -> flip_e(eta[i-1]) -> flip_e(eta[i]) -> flip_e(eta[i+1]) -> eta[i+1]
+			#
+			# which routes around the peak: the outer two are the e-flip and its
+			# inverse, and the inner two are beta1 and beta2 carried across it.
+			# Only the choice of e, and the sign, differ between the sub-cases.
+			#
+			# The paper's last case is when v1 and v2 are joined by an edge, so
+			# their degrees do not drop to 4 along the generic chain.  It splits
+			# on whether L already contains the edge u1u2 of its figure, because
+			# the flip of v1w -- the one the "absent" half needs -- is exactly the
+			# flip that would create u1u2.
+			#
+			#     figure   sigma1  sigma2  v1  v2  u1  u2  w   u1u2
+			#     here     sigma1  sigma2  v1  v2  w1  u2  w4  [w1,u2]
+
+			temp2:=[];
+			case:='g';
+
+			if Set([v1,v2]) in temp_faces[2][2] then
+
+				w1:=Difference(Set(Flat(link(eta[i],sigma1))),[v2]);
+				w4:=Difference(Set(Flat(link(eta[i],Set([u2,v1])))),[v2]);
+
+				if Length(w1)=1 and Length(w4)=1 then
+					if Set([w1[1],u2]) in temp_faces[2][2] then
+						Add(temp2, Set([w1[1],u2]));       # last case, u1u2 present
+						case:='p';
 					else
-						v1:=sigma1[2];
-						u1:=sigma1[1];
+						Add(temp2, Set([v1,w4[1]]));       # last case, u1u2 absent
+						case:='a';
 					fi;
-					
-					if sigma2[1] in temp then
-						v2:=sigma2[1];
-						u2:=sigma2[2];
-					else
-						v2:=sigma2[2];
-						u2:=sigma2[1];
-					fi;
-					
-					w1:=Difference(Set(Flat(link(eta[i],Set([u1,v1])))),[v2])[1];
-					w2:=Difference(Set(Flat(link(eta[i],Set([u2,v2])))),[v1])[1];
-					w3:=Difference(Set(Flat(link(eta[i],Set([u1,v2])))),[v1])[1];
-					w4:=Difference(Set(Flat(link(eta[i],Set([u2,v1])))),[v2])[1];
-					
-					# This is the last case of b = 4 in the paper (Sect. 5.3, p. 368):
-					# v1 and v2 are the degree-5 ends of sigma1 and sigma2 and they are
-					# joined by an edge, so their degrees do not drop to 4 along the
-					# generic chain and that chain does not lower the complexity.
-					#
-					# Dictionary between the figure on p. 368 and the names used here:
-					#
-					#     figure   sigma1  sigma2  v1  v2  u1  u2  w   edge u1u2
-					#     here     sigma1  sigma2  v1  v2  w1  u2  w4  [w1,u2]
-					#
-					# The figure's u1 is link(L,sigma1) minus v2, which is w1 here; the
-					# figure's w is link(L,{u2,v1}) minus v2, which is w4.  (The code's
-					# own u1 is sigma1's other end, left unlabelled in the figure.)
-					#
-					# The paper splits the last case on whether L already contains the
-					# edge u1u2.  The code below handled only the "absent" half: the
-					# cycles gamma(L,sigma1,v1w) and gamma(L,sigma2,v1w) it uses need the
-					# flip of v1w to be defined, and that flip is exactly what would
-					# create u1u2, so it is blocked when u1u2 is already there.
-					
-					if Set([w1,u2]) in ve_count(eta[i])[2] then
-					
-						# u1u2 present.  Paper: "If L contains the edge u1u2, then, as in
-						# Case 3 for b = 2, the cycles gamma(L,sigma1,u1u2) and
-						# gamma(L,sigma2,u1u2) are defined and the chain beta1 + beta2 +
-						# gamma(L,sigma1,u1u2) - gamma(L,sigma2,u1u2) is represented as a
-						# sum of moves with lower complexities and two moves, where the
-						# edge u1u2 is absent."
-						#
-						# So take the two elementary cycles on u1u2 instead of on v1w, and
-						# commute the u1u2 flip past beta1 and beta2.  The two moves left in
-						# the middle no longer contain u1u2, so the next call to
-						# decomposition lands in the branch below.  This mirrors case 'k'
-						# of b = 2, which performs the same reduction.
-						#
-						# Sign: the generic b = 4 chain and the branch below both read
-						# -gamma(.,sigma1,.) + gamma(.,sigma2,.) and are implemented as the
-						# sum of the two count_with_intersection terms.  This case carries
-						# the opposite pattern, +gamma(.,sigma1,.) - gamma(.,sigma2,.),
-						# hence the negation.
-						
-						temp5:=Set(Flat(link(eta[i],Set([w1,u2]))));
-						
-						temp_res:=-( count_with_intersection([eta[i-1],eta[i]],Set([w1,v2]),Set([w1,u2]),ori_eta[i-1])
-						           + count_with_intersection([eta[i],eta[i+1]],Set([u2,v2]),Set([w1,u2]),ori_eta[i]) );
-						
-						# flip u1u2 out of each of the three spheres
-						
-						temp1:=StructuralCopy(eta[i-1]);
-						temp3:=StructuralCopy(eta[i]);
-						temp4:=StructuralCopy(eta[i+1]);
-						
-						for temp6 in [temp1,temp3,temp4] do
-							RemoveSet(temp6,Set([w1,u2,temp5[1]]));
-							RemoveSet(temp6,Set([w1,u2,temp5[2]]));
-							AddSet(temp6,Set([w1,temp5[1],temp5[2]]));
-							AddSet(temp6,Set([u2,temp5[1],temp5[2]]));
-						od;
-						
-						# eta[i-1] -> temp1 -> temp3 -> temp4 -> eta[i+1].  The outer two
-						# moves are the u1u2 flip and its inverse and are less complex; the
-						# inner two are beta1 and beta2 carried across it, now free of u1u2.
-						
-						eta[i]:=temp1;
-						InsertElement(eta,temp3,i+1);
-						InsertElement(eta,temp4,i+2);
-						
-						# orientation
-						
-						ori_eta[i]:=ori_check([eta[i-1],eta[i]],ori_eta[i-1]);
-						InsertElement(ori_eta,ori_check([eta[i],eta[i+1]],ori_eta[i]),i+1);
-						InsertElement(ori_eta,ori_check([eta[i+1],eta[i+2]],ori_eta[i+1]),i+2);
-						
-						Print("b=4 -> last case, edge u1u2 present\n");
-						Print("decomposition -> return ",temp_res,"\n");
-						return temp_res;
-					
-					fi;
-					
-					# u1u2 absent: gamma(L,sigma1,v1w) and gamma(L,sigma2,v1w) are defined.
-					
-					# p,q,r
-					
-					temp_res:=count_with_intersection([eta[i-1],eta[i]],Set([w1,v2]),Set([v1,w4]),ori_eta[i-1]) + count_with_intersection([eta[i],eta[i+1]],Set([u2,v2]),Set([v1,w4]),ori_eta[i]);
-					
-					##
-					
-					temp1:=StructuralCopy(eta[i-1]);
-					
-					RemoveSet(temp1,Set([v1,w1,w4]));
-					RemoveSet(temp1,Set([v1,u2,w4]));
-					AddSet(temp1,Set([v1,w1,u2]));
-					AddSet(temp1,Set([u2,w1,w4]));
-					
-					temp2:=StructuralCopy(temp1);
-					
-					RemoveSet(temp2,Set([u1,w1,v2]));
-					RemoveSet(temp2,Set([v1,v2,w1]));
-					AddSet(temp2,Set([u1,v1,w1]));
-					AddSet(temp2,Set([u1,v1,v2]));
-					
-					temp3:=StructuralCopy(temp2);
-					
-					RemoveSet(temp3,Set([u2,v1,v2]));
-					RemoveSet(temp3,Set([u2,v2,w2]));
-					AddSet(temp3,Set([v1,v2,w2]));
-					AddSet(temp3,Set([v1,w2,u2]));
-					
-					# change eta
-					
-					eta[i]:=StructuralCopy(temp1);
-					InsertElement(eta,temp2,i+1);
-					InsertElement(eta,temp3,i+3);
-					
-					# orientation
-					
-					ori_eta[i]:=ori_check([eta[i-1],eta[i]],ori_eta[i-1]);
-					InsertElement(ori_eta,ori_check([eta[i],eta[i+1]],ori_eta[i]),i+1);
-					InsertElement(ori_eta,ori_check([eta[i+1],eta[i+2]],ori_eta[i+1]),i+2);
-					
-					# p,q,r
-					
-					Print("  ->LAST CASE!\n");
-					Print("decomposition -> return ",temp_res,"\n");
-					return temp_res;
-				
-				else
-				
-					# The branch above is the only degree configuration covered for
-					# |U(eta[i-1],eta[i]) cap U(eta[i],eta[i+1])| = 2.  Here eta[i]
-					# carries the maximal difficulty and difficulty_tri(eta[i]) is
-					# 2 mod 3, so eta[i] has minimum degree 5 and the complement
-					# reached here is exactly: at least one of the two shared
-					# vertices has degree >= 6 in eta[i].  Not implemented yet.
-					
-					record_unhandled("b=4, |U1 cap U2| = 2, shared vertices not both of degree 5",
-					                 i, eta, ori_eta,
-					                 rec( sigma1 := sigma1,
-					                      sigma2 := sigma2,
-					                      shared := temp,
-					                      shared_degrees := List(temp, x -> deg_res[x]) ));
-				
 				fi;
-			
-			else
-			
-				# Same correction as above: in eta[i-1] the edge sigma1 no longer exists,
-				# its flip put link_{eta[i]}(sigma1) there instead.
-				
-				temp_res:=count_with_intersection([eta[i-1],eta[i]],Set(Flat(link(eta[i],sigma1))),sigma2,ori_eta[i-1]);
-				
-				# v1, u1, v2, u2 are named above, per the paper.
-				
-				w1:=Set(Flat(link(eta[i],sigma1)))[1];
-				w2:=Set(Flat(link(eta[i],sigma1)))[2];
-				w3:=Set(Flat(link(eta[i],sigma2)))[1];
-				w4:=Set(Flat(link(eta[i],sigma2)))[2];
-				
-				RemoveSet(eta[i],Set([u1,v1,w1]));
-				RemoveSet(eta[i],Set([u1,v1,w2]));
-				RemoveSet(eta[i],Set([u2,v2,w3]));
-				RemoveSet(eta[i],Set([u2,v2,w4]));
-				
-				AddSet(eta[i],Set([u1,w1,w2]));
-				AddSet(eta[i],Set([v1,w1,w2]));
-				AddSet(eta[i],Set([u2,w3,w4]));
-				AddSet(eta[i],Set([v2,w3,w4]));
-				
-				ori_eta[i]:=ori_check([eta[i-1],eta[i]],ori_eta[i-1]);
-				
-				Print("b=4 -> 1 cycle \n");
-				Print("decomposition -> return ",temp_res,"\n");
-				return temp_res;
-				
+
 			fi;
-		fi;		
+
+			# Generic choice: an edge at a degree-5 vertex taking no part in either
+			# move.  L has at least 12 vertices of degree 5 and at most 8 of them
+			# participate, so such a vertex exists; at least three of its five
+			# edges carry a defined move.
+
+			temp:=U([eta[i-1],eta[i]]);
+			UniteSet(temp,U([eta[i],eta[i+1]]));
+
+			for w in [1..Length(deg_res)] do
+				if deg_res[w]=5 and not w in temp then
+					for vertex in Set(Flat(link(eta[i],[w]))) do
+						Add(temp2, Set([w,vertex]));
+					od;
+				fi;
+			od;
+
+			# gamma(L,sigma,e) is defined when the flips of sigma and e commute.
+			# Following the definition of gamma that needs two things: the flip of
+			# e must be available in eta[i-1] and eta[i+1] as well as in eta[i],
+			# and no simplex of L may contain both e and sigma -- if e shares a
+			# triangle with sigma, flipping e changes the link of sigma and the
+			# two orders of flipping give different spheres.  Take the first
+			# candidate that qualifies; the prescribed last-case edge is first in
+			# the list when it applies.
+
+			temp1:=fail;
+
+			for edge in temp2 do
+				if flip_defined(eta[i-1],edge) and flip_defined(eta[i],edge)
+				   and flip_defined(eta[i+1],edge)
+				   and not ForAny(eta[i], t -> IsSubsetSet(t,edge) and IsSubsetSet(t,sigma1))
+				   and not ForAny(eta[i], t -> IsSubsetSet(t,edge) and IsSubsetSet(t,sigma2)) then
+					temp1:=edge;
+					break;
+				fi;
+			od;
+
+			if temp1 = fail then
+				record_unhandled("b=4: no auxiliary edge with both gammas defined",
+				                 i, eta, ori_eta,
+				                 rec( sigma1:=sigma1, sigma2:=sigma2, candidates:=temp2 ));
+				continue;
+			fi;
+
+			if Length(temp2) = 0 or temp1 <> temp2[1] then
+				case:='g';
+			fi;
+
+			# count_with_intersection takes bis_edge as an edge of bis[1]; for the
+			# pair [eta[i-1],eta[i]] that is eta[i-1], where beta1 has already
+			# replaced sigma1 by its link.
+
+			temp_res:=count_with_intersection([eta[i-1],eta[i]],Set(Flat(link(eta[i],sigma1))),temp1,ori_eta[i-1])
+			         +count_with_intersection([eta[i],eta[i+1]],sigma2,temp1,ori_eta[i]);
+
+			# The generic chain and the u1u2-absent half both read
+			# -gamma(.,sigma1,.) + gamma(.,sigma2,.), which is the sum above; the
+			# u1u2-present half carries the opposite pattern.
+
+			if case='p' then
+				temp_res:=-temp_res;
+			fi;
+
+			temp3:=flip_edge(eta[i-1],temp1);
+			temp4:=flip_edge(eta[i],temp1);
+			temp5:=flip_edge(eta[i+1],temp1);
+
+			eta[i]:=temp3;
+			InsertElement(eta,temp4,i+1);
+			InsertElement(eta,temp5,i+2);
+
+			ori_eta[i]:=ori_check([eta[i-1],eta[i]],ori_eta[i-1]);
+			InsertElement(ori_eta,ori_check([eta[i],eta[i+1]],ori_eta[i]),i+1);
+			InsertElement(ori_eta,ori_check([eta[i+1],eta[i+2]],ori_eta[i+1]),i+2);
+
+			if case='p' then
+				Print("b=4 -> last case, edge u1u2 present\n");
+			elif case='a' then
+				Print("b=4 -> last case, edge u1u2 absent\n");
+			else
+				Print("b=4 -> generic\n");
+			fi;
+			Print("decomposition -> return ",temp_res,"\n");
+			return temp_res;
+
+		fi;
 	fi;
 
 	if (difficulty_eta[i] mod 6) = 5 then
