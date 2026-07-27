@@ -39,7 +39,7 @@ of it.
 | `Decomposition.g` | The method library: bistellar moves, links, orientations, complexity, the values of the cocycle on elementary cycles, and the decomposition of a cycle into a linear combination of them. Read by `Gamma2.g`. |
 | `BISTELLAR.g` | Lutz's BISTELLAR (version Nov/2003) with the instrumentation `Gamma2.g` consumes: the facet list after every flip is recorded in `bisfaces`, and the move itself in `randomelements`. |
 | `Pontryagin-M_8_15.testobject` | M<sup>8</sup><sub>15</sub> — 490 facets on 15 vertices — together with the precomputed BISTELLAR output for each of its 3003 4-simplices. |
-| `BISTELLAR.testobject`, `BISTELLAR.log`, `BISTELLAR.out` | A sample BISTELLAR run: a 15-vertex 3-sphere on 90 facets reduced in 77 rounds to the boundary of the 4-simplex. Regenerated on every run. |
+| `BISTELLAR.testobject`, `BISTELLAR.log`, `BISTELLAR.out` | A sample BISTELLAR run: a 15-vertex 3-sphere on 90 facets reduced in 77 rounds to the boundary of the 4-simplex. Regenerated on every run, and the strategy is randomised, so the round count varies. |
 
 ## Running
 
@@ -175,4 +175,6 @@ and described in
 
 The copy included here differs from the original only by the additions marked
 with `##` fences, which record the facet list after each flip in `bisfaces` and
-the move itself in `randomelements`. Its terms of use are those of its author.
+the move itself in `randomelements`; the file carries a note to that effect at
+its head. It is reproduced with attribution to its authors, and is not covered
+by this repository's `LICENSE`.

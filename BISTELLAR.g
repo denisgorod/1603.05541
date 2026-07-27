@@ -1,5 +1,30 @@
 ##################################################################
 ##################################################################
+####                                                          ####
+####  NOTE ON THIS COPY                                       ####
+####                                                          ####
+####  This is Frank H. Lutz's program BISTELLAR, reproduced   ####
+####  from                                                    ####
+####                                                          ####
+####    http://www.math.tu-berlin.de/diskregeom/stellar/      ####
+####                                                          ####
+####  with its original header below left intact.  The only   ####
+####  changes are the additions marked by ## fences, which    ####
+####  record the facet list after each flip in  bisfaces      ####
+####  and the move itself in  randomelements , for use by     ####
+####  Gamma2.g.  Everything else is as distributed.           ####
+####                                                          ####
+####  Credit for the program belongs to its authors; see the  ####
+####  header below and the references at the end of it.       ####
+####  This file is not covered by the LICENSE of the          ####
+####  repository that contains it.                            ####
+####                                                          ####
+##################################################################
+##################################################################
+
+
+##################################################################
+##################################################################
 ##################################################################
 ####                                                          ####
 ####  GAP-Program                                             ####
