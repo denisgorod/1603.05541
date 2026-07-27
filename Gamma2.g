@@ -42,9 +42,10 @@ simplex:=[];
 
 ### Variables for different options
 
-object:=1;	## 0 for user object from "Pontryagin.testobject", requires BISTELLAR (a bit modified to have all the necessary output, contact the author for the modified version).
-		## 1 for M_8^15 - using the file "Pontryagin-M_8^15.testobject", 
-		### BISTELLAR is not directly required, the input file already contains all BISTELLAR output
+object:=1;	## 0 for a user object from "Pontryagin.testobject"; each link is passed to
+		##   BISTELLAR.g, which records the flip sequence in bisfaces.
+		## 1 for M_8^15 from "Pontryagin-M_8_15.testobject", which already carries
+		##   the BISTELLAR output for every 4-simplex, so BISTELLAR.g is not read.
 
 debug:=0;
 
@@ -245,10 +246,8 @@ PSC:=SC(Pfacets);
 
 # SCHomologyBasisAsSimplices returns one entry per generator, each of the form
 # [ torsion, cycle ], where the cycle is a list of [ coefficient, simplex ] pairs.
-# The guards below have to count generators. Reading [1][2] first and then testing
-# its length counts the simplices in the cycle instead: for M^8_15 that is one
-# generator with a six-simplex cycle, so Length(...) was 6, neither branch was
-# taken, and the program printed nothing at all after the main loop.
+# The guards below count generators; the cycle of the single generator is taken
+# inside the branch that needs it.
 
 PHomologyBasisAll:=SCHomologyBasisAsSimplices(PSC,Pdim-5);
 
@@ -292,9 +291,8 @@ elif Length(PHomologyBasisAll)=1 then
 	Psolution:=SolutionMat(P5Bvector, Pvector);
 	
 	# The last entry of the solution is the proportionality coefficient for the
-	# first Pontryagin class; the rest only record which boundaries were used.
-	# Printing the whole vector emits one number per (Pdim-3)-face -- 5006 of
-	# them for M^8_15 -- which buried the answer and did not always finish.
+	# first Pontryagin class; the remaining entries record which boundaries were
+	# used, one per (Pdim-3)-face.
 	
 	if Psolution = fail then
 		Print("p1: no solution -- the chain is not in the span of the boundaries and the homology basis\n");

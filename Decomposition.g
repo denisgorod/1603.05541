@@ -809,9 +809,8 @@ duplicate_free_eta:=function(eta,ori_eta)
 	# removed.  Cancellations can cascade, so after each removal we step
 	# back one position and recheck.
 	#
-	# Complexity: O(n) calls to U instead of the previous O(n^2).
-	# All n-1 U-values are pre-computed once; after a removal only the
-	# one new boundary value needs to be recomputed.
+	# O(n) calls to U: all n-1 U-values are pre-computed once, and after a
+	# removal only the one new boundary value is recomputed.
 
 	local u, b;
 
@@ -1008,17 +1007,10 @@ end;
 
 
 ##
-# Every case chain in decomposition() is a closed list of configurations with
-# no fallback branch.  When a configuration falls outside its list the function
-# drops out of the "for i in max_pos" loop without a return, and GAP reports
-# that far from the cause -- as "must return a value" at Pt:=Pt+decomposition(...)
-# in Gamma2.g -- or, when another position of max_pos happens to return first,
-# not at all: the peak is silently skipped and the run continues on a chain that
-# was never decomposed.
-#
-# record_unhandled captures the configuration instead, so an uncovered case is
-# reported where it occurs and stays available afterwards in unhandled_cases
-# for deriving the missing case from the configurations that actually arise.
+# Records a configuration that no case of decomposition() covers: the three
+# consecutive spheres, the orientation, the two U-sets and their intersection,
+# and the vertex degrees.  The record is printed and appended to the global
+# unhandled_cases, where it stays available for inspection after a run.
 
 unhandled_cases:=[];
 
@@ -3342,11 +3334,9 @@ for i in max_pos do
 	fi;
 od;
 
-# Reaching this point means no position of max_pos produced a value: every
-# position either failed the "eta[i] is the peak" guard or hit a configuration
-# outside its case chain.  Returning nothing here surfaces in Gamma2.g as
-# "must return a value" with none of the state that explains it, so stop here
-# instead, while eta, ori_eta and unhandled_cases are still inspectable.
+# No position of max_pos produced a value: each either failed the "eta[i] is
+# the peak" guard or met a configuration outside its case chain.  Stop here,
+# where eta, ori_eta and unhandled_cases are still inspectable.
 
 Error("decomposition: no case matched at any position of max_pos ", max_pos,
       " (max difficulty ", Maximum(difficulty_eta),
