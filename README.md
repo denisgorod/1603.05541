@@ -158,8 +158,11 @@ The computation uses GAP and the simpcomp package:
 
 ## Attribution and licensing
 
+Copyright © 2019, 2026 Denis Gorodkov.
+
 The code written for this project — `Gamma2.g`, `Decomposition.g` and the input
-files — is released under the GNU General Public License v3; see `LICENSE`.
+files — is released under the GNU General Public License v3; see `LICENSE`, and
+the notice at the head of each source file.
 
 `BISTELLAR.g` is not part of that: it is Frank H. Lutz's program BISTELLAR
 (version Nov/2003; the first version, Nov/1997, is by Anders Björner and
