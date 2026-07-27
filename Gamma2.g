@@ -18,7 +18,7 @@
 ##########################################################################################################
 ####            This program computes the first Pontryagin class of a simplicial complex.             ####
 ####		To be run for the case of M^8_{15}, the triangulation of the quaternionic	      ####
-####		projective plane, it needs the file Pontryagin-M_8^15.testobject.		      ####
+####		projective plane, it needs the file Pontryagin-M_8_15.testobject.		      ####
 ####		To be run in the general case it needs a modified version of the program	      ####
 ####		BISTELLAR by Frank H. Lutz, TU Berlin, Germany. 				      ####
 ####												      ####
