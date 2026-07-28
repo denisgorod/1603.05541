@@ -317,6 +317,14 @@ elif Length(PHomologyBasisAll)=1 then
 		Print("p1 coefficient = ", Psolution[Length(Psolution)], "\n");
 	fi;
 
+else
+
+	# This step is written for H^4 = Z, i.e. a single generator; the chain P has
+	# been computed either way and is left in place for a higher-rank treatment.
+
+	Print("p1: H_", Pdim-5, " has rank ", Length(PHomologyBasisAll),
+	      "; this step handles rank 0 and 1 only. The chain P is computed.\n");
+
 fi;
 # SCBoundarySimplex(simplex,orientation(+-,false))
 
