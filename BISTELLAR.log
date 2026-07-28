@@ -1,0 +1,421 @@
+
+
+TestObject:
+
+
+facets:=[ [ 1, 2, 7, 11 ], [ 1, 2, 7, 15 ], [ 1, 2, 11, 15 ], [ 1, 3, 6, 10 ], [ 1, 3, 6, 14 ], [ 1, 3, 10, 14 ], 
+  [ 1, 4, 7, 11 ], [ 1, 4, 7, 15 ], [ 1, 4, 11, 13 ], [ 1, 4, 13, 15 ], [ 1, 5, 6, 10 ], [ 1, 5, 6, 14 ], 
+  [ 1, 5, 10, 12 ], [ 1, 5, 12, 14 ], [ 1, 8, 10, 12 ], [ 1, 8, 10, 13 ], [ 1, 8, 12, 15 ], [ 1, 8, 13, 15 ], 
+  [ 1, 9, 11, 12 ], [ 1, 9, 11, 13 ], [ 1, 9, 12, 14 ], [ 1, 9, 13, 14 ], [ 1, 10, 13, 14 ], [ 1, 11, 12, 15 ], 
+  [ 2, 3, 5, 9 ], [ 2, 3, 5, 13 ], [ 2, 3, 9, 13 ], [ 2, 4, 7, 8 ], [ 2, 4, 7, 10 ], [ 2, 4, 8, 9 ], [ 2, 4, 9, 10 ], 
+  [ 2, 5, 6, 8 ], [ 2, 5, 6, 10 ], [ 2, 5, 8, 9 ], [ 2, 5, 10, 12 ], [ 2, 5, 12, 13 ], [ 2, 6, 8, 11 ], [ 2, 6, 10, 11 ],
+  [ 2, 7, 8, 14 ], [ 2, 7, 10, 11 ], [ 2, 7, 14, 15 ], [ 2, 8, 11, 14 ], [ 2, 9, 10, 12 ], [ 2, 9, 12, 13 ], 
+  [ 2, 11, 14, 15 ], [ 3, 4, 5, 11 ], [ 3, 4, 5, 15 ], [ 3, 4, 6, 12 ], [ 3, 4, 6, 14 ], [ 3, 4, 11, 13 ], 
+  [ 3, 4, 12, 13 ], [ 3, 4, 14, 15 ], [ 3, 5, 7, 13 ], [ 3, 5, 7, 15 ], [ 3, 5, 9, 11 ], [ 3, 6, 7, 8 ], [ 3, 6, 7, 12 ],
+  [ 3, 6, 8, 10 ], [ 3, 7, 8, 14 ], [ 3, 7, 12, 13 ], [ 3, 7, 14, 15 ], [ 3, 8, 10, 14 ], [ 3, 9, 11, 13 ], 
+  [ 4, 5, 9, 11 ], [ 4, 5, 9, 15 ], [ 4, 6, 12, 13 ], [ 4, 6, 13, 14 ], [ 4, 7, 8, 9 ], [ 4, 7, 9, 15 ], 
+  [ 4, 7, 10, 11 ], [ 4, 9, 10, 11 ], [ 4, 13, 14, 15 ], [ 5, 6, 7, 8 ], [ 5, 6, 7, 12 ], [ 5, 6, 12, 14 ], 
+  [ 5, 7, 8, 9 ], [ 5, 7, 9, 15 ], [ 5, 7, 12, 13 ], [ 6, 8, 10, 15 ], [ 6, 8, 11, 15 ], [ 6, 9, 12, 13 ], 
+  [ 6, 9, 12, 14 ], [ 6, 9, 13, 14 ], [ 6, 10, 11, 15 ], [ 8, 10, 12, 15 ], [ 8, 10, 13, 14 ], [ 8, 11, 14, 15 ], 
+  [ 8, 13, 14, 15 ], [ 9, 10, 11, 12 ], [ 10, 11, 12, 15 ] ];
+
+
+dim = 3
+
+f_0 = 15   f_1 = 105   f_2 = 180   f_3 = 90   
+
+chi = 0    sum = 390
+
+g_1 = 10   g_2 = 55   
+
+
+
+Reverse-1-Move   (1 rounds)
+randomelement=[ [ 10, 13 ], [ 1, 8, 14 ] ]
+f_0 = 15   f_1 = 104   f_2 = 178   f_3 = 89   
+g_1 = 10   g_2 = 54   
+
+Reverse-1-Move   (2 rounds)
+randomelement=[ [ 6, 9 ], [ 12, 13, 14 ] ]
+f_0 = 15   f_1 = 103   f_2 = 176   f_3 = 88   
+g_1 = 10   g_2 = 53   
+
+Reverse-1-Move   (3 rounds)
+randomelement=[ [ 9, 15 ], [ 4, 5, 7 ] ]
+f_0 = 15   f_1 = 102   f_2 = 174   f_3 = 87   
+g_1 = 10   g_2 = 52   
+
+Reverse-1-Move   (4 rounds)
+randomelement=[ [ 8, 12 ], [ 1, 10, 15 ] ]
+f_0 = 15   f_1 = 101   f_2 = 172   f_3 = 86   
+g_1 = 10   g_2 = 51   
+
+Reverse-1-Move   (5 rounds)
+randomelement=[ [ 10, 14 ], [ 1, 3, 8 ] ]
+f_0 = 15   f_1 = 100   f_2 = 170   f_3 = 85   
+g_1 = 10   g_2 = 50   
+
+Reverse-1-Move   (6 rounds)
+randomelement=[ [ 3, 10 ], [ 1, 6, 8 ] ]
+f_0 = 15   f_1 = 99   f_2 = 168   f_3 = 84   
+g_1 = 10   g_2 = 49   
+
+Reverse-1-Move   (7 rounds)
+randomelement=[ [ 8, 13 ], [ 1, 14, 15 ] ]
+f_0 = 15   f_1 = 98   f_2 = 166   f_3 = 83   
+g_1 = 10   g_2 = 48   
+
+Reverse-1-Move   (8 rounds)
+randomelement=[ [ 5, 14 ], [ 1, 6, 12 ] ]
+f_0 = 15   f_1 = 97   f_2 = 164   f_3 = 82   
+g_1 = 10   g_2 = 47   
+
+Reverse-1-Move   (9 rounds)
+randomelement=[ [ 4, 8 ], [ 2, 7, 9 ] ]
+f_0 = 15   f_1 = 96   f_2 = 162   f_3 = 81   
+g_1 = 10   g_2 = 46   
+
+Reverse-1-Move   (10 rounds)
+randomelement=[ [ 5, 11 ], [ 3, 4, 9 ] ]
+f_0 = 15   f_1 = 95   f_2 = 160   f_3 = 80   
+g_1 = 10   g_2 = 45   
+
+Reverse-1-Move   (11 rounds)
+randomelement=[ [ 1, 2 ], [ 7, 11, 15 ] ]
+f_0 = 15   f_1 = 94   f_2 = 158   f_3 = 79   
+g_1 = 10   g_2 = 44   
+
+Reverse-1-Move   (12 rounds)
+randomelement=[ [ 13, 15 ], [ 1, 4, 14 ] ]
+f_0 = 15   f_1 = 93   f_2 = 156   f_3 = 78   
+g_1 = 10   g_2 = 43   
+
+Reverse-1-Move   (13 rounds)
+randomelement=[ [ 6, 15 ], [ 8, 10, 11 ] ]
+f_0 = 15   f_1 = 92   f_2 = 154   f_3 = 77   
+g_1 = 10   g_2 = 42   
+
+Reverse-1-Move   (14 rounds)
+randomelement=[ [ 7, 13 ], [ 3, 5, 12 ] ]
+f_0 = 15   f_1 = 91   f_2 = 152   f_3 = 76   
+g_1 = 10   g_2 = 41   
+
+Reverse-1-Move   (15 rounds)
+randomelement=[ [ 6, 11 ], [ 2, 8, 10 ] ]
+f_0 = 15   f_1 = 90   f_2 = 150   f_3 = 75   
+g_1 = 10   g_2 = 40   
+
+Reverse-1-Move   (16 rounds)
+randomelement=[ [ 2, 6 ], [ 5, 8, 10 ] ]
+f_0 = 15   f_1 = 89   f_2 = 148   f_3 = 74   
+g_1 = 10   g_2 = 39   
+
+Reverse-1-Move   (17 rounds)
+randomelement=[ [ 1, 7 ], [ 4, 11, 15 ] ]
+f_0 = 15   f_1 = 88   f_2 = 146   f_3 = 73   
+g_1 = 10   g_2 = 38   
+
+Reverse-1-Move   (18 rounds)
+randomelement=[ [ 8, 9 ], [ 2, 5, 7 ] ]
+f_0 = 15   f_1 = 87   f_2 = 144   f_3 = 72   
+g_1 = 10   g_2 = 37   
+
+Reverse-1-Move   (19 rounds)
+randomelement=[ [ 7, 9 ], [ 2, 4, 5 ] ]
+f_0 = 15   f_1 = 86   f_2 = 142   f_3 = 71   
+g_1 = 10   g_2 = 36   
+
+Reverse-1-Move   (20 rounds)
+randomelement=[ [ 6, 10 ], [ 1, 5, 8 ] ]
+f_0 = 15   f_1 = 85   f_2 = 140   f_3 = 70   
+g_1 = 10   g_2 = 35   
+
+Reverse-1-Move   (21 rounds)
+randomelement=[ [ 7, 12 ], [ 3, 5, 6 ] ]
+f_0 = 15   f_1 = 84   f_2 = 138   f_3 = 69   
+g_1 = 10   g_2 = 34   
+
+Reverse-1-Move   (22 rounds)
+randomelement=[ [ 7, 10 ], [ 2, 4, 11 ] ]
+f_0 = 15   f_1 = 83   f_2 = 136   f_3 = 68   
+g_1 = 10   g_2 = 33   
+
+Reverse-1-Move   (23 rounds)
+randomelement=[ [ 6, 13 ], [ 4, 12, 14 ] ]
+f_0 = 15   f_1 = 82   f_2 = 134   f_3 = 67   
+g_1 = 10   g_2 = 32   
+
+Reverse-1-Move   (24 rounds)
+randomelement=[ [ 11, 14 ], [ 2, 8, 15 ] ]
+f_0 = 15   f_1 = 81   f_2 = 132   f_3 = 66   
+g_1 = 10   g_2 = 31   
+
+Reverse-1-Move   (25 rounds)
+randomelement=[ [ 6, 7 ], [ 3, 5, 8 ] ]
+f_0 = 15   f_1 = 80   f_2 = 130   f_3 = 65   
+g_1 = 10   g_2 = 30   
+
+Reverse-1-Move   (26 rounds)
+randomelement=[ [ 1, 3 ], [ 6, 8, 14 ] ]
+f_0 = 15   f_1 = 79   f_2 = 128   f_3 = 64   
+g_1 = 10   g_2 = 29   
+
+Reverse-1-Move   (27 rounds)
+randomelement=[ [ 5, 9 ], [ 2, 3, 4 ] ]
+f_0 = 15   f_1 = 78   f_2 = 126   f_3 = 63   
+g_1 = 10   g_2 = 28   
+
+Reverse-1-Move   (28 rounds)
+randomelement=[ [ 5, 15 ], [ 3, 4, 7 ] ]
+f_0 = 15   f_1 = 77   f_2 = 124   f_3 = 62   
+g_1 = 10   g_2 = 27   
+
+Reverse-1-Move   (29 rounds)
+randomelement=[ [ 4, 10 ], [ 2, 9, 11 ] ]
+f_0 = 15   f_1 = 76   f_2 = 122   f_3 = 61   
+g_1 = 10   g_2 = 26   
+
+Reverse-1-Move   (30 rounds)
+randomelement=[ [ 5, 13 ], [ 2, 3, 12 ] ]
+f_0 = 15   f_1 = 75   f_2 = 120   f_3 = 60   
+g_1 = 10   g_2 = 25   
+
+Reverse-1-Move   (31 rounds)
+randomelement=[ [ 12, 15 ], [ 1, 10, 11 ] ]
+f_0 = 15   f_1 = 74   f_2 = 118   f_3 = 59   
+g_1 = 10   g_2 = 24   
+
+Reverse-1-Move   (32 rounds)
+randomelement=[ [ 9, 14 ], [ 1, 12, 13 ] ]
+f_0 = 15   f_1 = 73   f_2 = 116   f_3 = 58   
+g_1 = 10   g_2 = 23   
+
+Reverse-1-Move   (33 rounds)
+randomelement=[ [ 4, 9 ], [ 2, 3, 11 ] ]
+f_0 = 15   f_1 = 72   f_2 = 114   f_3 = 57   
+g_1 = 10   g_2 = 22   
+
+Reverse-1-Move   (34 rounds)
+randomelement=[ [ 2, 13 ], [ 3, 9, 12 ] ]
+f_0 = 15   f_1 = 71   f_2 = 112   f_3 = 56   
+g_1 = 10   g_2 = 21   
+
+Reverse-1-Move   (35 rounds)
+randomelement=[ [ 4, 5 ], [ 2, 3, 7 ] ]
+f_0 = 15   f_1 = 70   f_2 = 110   f_3 = 55   
+g_1 = 10   g_2 = 20   
+
+Reverse-1-Move   (36 rounds)
+randomelement=[ [ 2, 4 ], [ 3, 7, 11 ] ]
+f_0 = 15   f_1 = 69   f_2 = 108   f_3 = 54   
+g_1 = 10   g_2 = 19   
+
+Reverse-1-Move   (37 rounds)
+randomelement=[ [ 1, 9 ], [ 11, 12, 13 ] ]
+f_0 = 15   f_1 = 68   f_2 = 106   f_3 = 53   
+g_1 = 10   g_2 = 18   
+
+Reverse-1-Move   (38 rounds)
+randomelement=[ [ 3, 15 ], [ 4, 7, 14 ] ]
+f_0 = 15   f_1 = 67   f_2 = 104   f_3 = 52   
+g_1 = 10   g_2 = 17   
+
+Reverse-1-Move   (39 rounds)
+randomelement=[ [ 13, 14 ], [ 1, 4, 12 ] ]
+f_0 = 15   f_1 = 66   f_2 = 102   f_3 = 51   
+g_1 = 10   g_2 = 16   
+
+Reverse-1-Move   (40 rounds)
+randomelement=[ [ 8, 11 ], [ 2, 10, 15 ] ]
+f_0 = 15   f_1 = 65   f_2 = 100   f_3 = 50   
+g_1 = 10   g_2 = 15   
+
+Reverse-1-Move   (41 rounds)
+randomelement=[ [ 5, 7 ], [ 2, 3, 8 ] ]
+f_0 = 15   f_1 = 64   f_2 = 98   f_3 = 49   
+g_1 = 10   g_2 = 14   
+
+Reverse-1-Move   (42 rounds)
+randomelement=[ [ 1, 13 ], [ 4, 11, 12 ] ]
+f_0 = 15   f_1 = 63   f_2 = 96   f_3 = 48   
+g_1 = 10   g_2 = 13   
+
+Reverse-1-Move   (43 rounds)
+randomelement=[ [ 4, 6 ], [ 3, 12, 14 ] ]
+f_0 = 15   f_1 = 62   f_2 = 94   f_3 = 47   
+g_1 = 10   g_2 = 12   
+
+Reverse-1-Move   (44 rounds)
+randomelement=[ [ 2, 14 ], [ 7, 8, 15 ] ]
+f_0 = 15   f_1 = 61   f_2 = 92   f_3 = 46   
+g_1 = 10   g_2 = 11   
+
+Reverse-1-Move   (45 rounds)
+randomelement=[ [ 4, 13 ], [ 3, 11, 12 ] ]
+f_0 = 15   f_1 = 60   f_2 = 90   f_3 = 45   
+g_1 = 10   g_2 = 10   
+
+Reverse-0-Move   (46 rounds)
+randomelement=[ [ 13 ], [ 3, 9, 11, 12 ] ]
+f_0 = 14   f_1 = 56   f_2 = 84   f_3 = 42   
+g_1 = 9   g_2 = 10   
+
+Reverse-1-Move   (47 rounds)
+randomelement=[ [ 9, 10 ], [ 2, 11, 12 ] ]
+f_0 = 14   f_1 = 55   f_2 = 82   f_3 = 41   
+g_1 = 9   g_2 = 9   
+
+Reverse-0-Move   (48 rounds)
+randomelement=[ [ 9 ], [ 2, 3, 11, 12 ] ]
+f_0 = 13   f_1 = 51   f_2 = 76   f_3 = 38   
+g_1 = 8   g_2 = 9   
+
+1-Move   (49 rounds)
+randomelement=[ [ 3, 7, 8 ], [ 2, 14 ] ]
+f_0 = 13   f_1 = 52   f_2 = 78   f_3 = 39   
+g_1 = 8   g_2 = 10   
+
+Reverse-1-Move   (50 rounds)
+randomelement=[ [ 2, 14 ], [ 3, 7, 8 ] ]
+f_0 = 13   f_1 = 51   f_2 = 76   f_3 = 38   
+g_1 = 8   g_2 = 9   
+
+1-Move   (51 rounds)
+randomelement=[ [ 3, 6, 8 ], [ 5, 14 ] ]
+f_0 = 13   f_1 = 52   f_2 = 78   f_3 = 39   
+g_1 = 8   g_2 = 10   
+
+Reverse-1-Move   (52 rounds)
+randomelement=[ [ 3, 6 ], [ 5, 12, 14 ] ]
+f_0 = 13   f_1 = 51   f_2 = 76   f_3 = 38   
+g_1 = 8   g_2 = 9   
+
+Reverse-1-Move   (53 rounds)
+randomelement=[ [ 6, 12 ], [ 1, 5, 14 ] ]
+f_0 = 13   f_1 = 50   f_2 = 74   f_3 = 37   
+g_1 = 8   g_2 = 8   
+
+Reverse-0-Move   (54 rounds)
+randomelement=[ [ 6 ], [ 1, 5, 8, 14 ] ]
+f_0 = 12   f_1 = 46   f_2 = 68   f_3 = 34   
+g_1 = 7   g_2 = 8   
+
+1-Move   (55 rounds)
+randomelement=[ [ 1, 4, 12 ], [ 11, 14 ] ]
+f_0 = 12   f_1 = 47   f_2 = 70   f_3 = 35   
+g_1 = 7   g_2 = 9   
+
+Reverse-1-Move   (56 rounds)
+randomelement=[ [ 1, 4 ], [ 11, 14, 15 ] ]
+f_0 = 12   f_1 = 46   f_2 = 68   f_3 = 34   
+g_1 = 7   g_2 = 8   
+
+Reverse-1-Move   (57 rounds)
+randomelement=[ [ 4, 15 ], [ 7, 11, 14 ] ]
+f_0 = 12   f_1 = 45   f_2 = 66   f_3 = 33   
+g_1 = 7   g_2 = 7   
+
+Reverse-1-Move   (58 rounds)
+randomelement=[ [ 4, 12 ], [ 3, 11, 14 ] ]
+f_0 = 12   f_1 = 44   f_2 = 64   f_3 = 32   
+g_1 = 7   g_2 = 6   
+
+Reverse-0-Move   (59 rounds)
+randomelement=[ [ 4 ], [ 3, 7, 11, 14 ] ]
+f_0 = 11   f_1 = 40   f_2 = 58   f_3 = 29   
+g_1 = 6   g_2 = 6   
+
+1-Move   (60 rounds)
+randomelement=[ [ 2, 7, 11 ], [ 3, 15 ] ]
+f_0 = 11   f_1 = 41   f_2 = 60   f_3 = 30   
+g_1 = 6   g_2 = 7   
+
+Reverse-1-Move   (61 rounds)
+randomelement=[ [ 2, 7 ], [ 3, 8, 15 ] ]
+f_0 = 11   f_1 = 40   f_2 = 58   f_3 = 29   
+g_1 = 6   g_2 = 6   
+
+Reverse-1-Move   (62 rounds)
+randomelement=[ [ 7, 8 ], [ 3, 14, 15 ] ]
+f_0 = 11   f_1 = 39   f_2 = 56   f_3 = 28   
+g_1 = 6   g_2 = 5   
+
+Reverse-0-Move   (63 rounds)
+randomelement=[ [ 7 ], [ 3, 11, 14, 15 ] ]
+f_0 = 10   f_1 = 35   f_2 = 50   f_3 = 25   
+g_1 = 5   g_2 = 5   
+
+1-Move   (64 rounds)
+randomelement=[ [ 1, 10, 15 ], [ 8, 11 ] ]
+f_0 = 10   f_1 = 36   f_2 = 52   f_3 = 26   
+g_1 = 5   g_2 = 6   
+
+Reverse-1-Move   (65 rounds)
+randomelement=[ [ 1, 15 ], [ 8, 11, 14 ] ]
+f_0 = 10   f_1 = 35   f_2 = 50   f_3 = 25   
+g_1 = 5   g_2 = 5   
+
+Reverse-1-Move   (66 rounds)
+randomelement=[ [ 10, 15 ], [ 2, 8, 11 ] ]
+f_0 = 10   f_1 = 34   f_2 = 48   f_3 = 24   
+g_1 = 5   g_2 = 4   
+
+Reverse-1-Move   (67 rounds)
+randomelement=[ [ 2, 15 ], [ 3, 8, 11 ] ]
+f_0 = 10   f_1 = 33   f_2 = 46   f_3 = 23   
+g_1 = 5   g_2 = 3   
+
+Reverse-0-Move   (68 rounds)
+randomelement=[ [ 15 ], [ 3, 8, 11, 14 ] ]
+f_0 = 9   f_1 = 29   f_2 = 40   f_3 = 20   
+g_1 = 4   g_2 = 3   
+
+1-Move   (69 rounds)
+randomelement=[ [ 2, 3, 8 ], [ 5, 11 ] ]
+f_0 = 9   f_1 = 30   f_2 = 42   f_3 = 21   
+g_1 = 4   g_2 = 4   
+
+Reverse-1-Move   (70 rounds)
+randomelement=[ [ 2, 8 ], [ 5, 10, 11 ] ]
+f_0 = 9   f_1 = 29   f_2 = 40   f_3 = 20   
+g_1 = 4   g_2 = 3   
+
+Reverse-1-Move   (71 rounds)
+randomelement=[ [ 8, 10 ], [ 1, 5, 11 ] ]
+f_0 = 9   f_1 = 28   f_2 = 38   f_3 = 19   
+g_1 = 4   g_2 = 2   
+
+Reverse-1-Move   (72 rounds)
+randomelement=[ [ 1, 8 ], [ 5, 11, 14 ] ]
+f_0 = 9   f_1 = 27   f_2 = 36   f_3 = 18   
+g_1 = 4   g_2 = 1   
+
+Reverse-0-Move   (73 rounds)
+randomelement=[ [ 8 ], [ 3, 5, 11, 14 ] ]
+f_0 = 8   f_1 = 23   f_2 = 30   f_3 = 15   
+g_1 = 3   g_2 = 1   
+
+Reverse-1-Move   (74 rounds)
+randomelement=[ [ 3, 14 ], [ 5, 11, 12 ] ]
+f_0 = 8   f_1 = 22   f_2 = 28   f_3 = 14   
+g_1 = 3   g_2 = 0   
+
+Reverse-0-Move   (75 rounds)
+randomelement=[ [ 14 ], [ 1, 5, 11, 12 ] ]
+f_0 = 7   f_1 = 18   f_2 = 22   f_3 = 11   
+g_1 = 2   g_2 = 0   
+
+Reverse-0-Move   (76 rounds)
+randomelement=[ [ 3 ], [ 2, 5, 11, 12 ] ]
+f_0 = 6   f_1 = 14   f_2 = 16   f_3 = 8   
+g_1 = 1   g_2 = 0   
+
+Reverse-0-Move   (77 rounds)
+randomelement=[ [ 1 ], [ 5, 10, 11, 12 ] ]
+f_0 = 5   f_1 = 10   f_2 = 10   f_3 = 5   
+g_1 = 0   g_2 = 0   
+
+
+The test object is a sphere!!!
+
+

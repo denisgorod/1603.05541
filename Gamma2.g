@@ -1,7 +1,24 @@
+# Copyright (C) 2019, 2026 Denis Gorodkov
+#
+# This program is free software: you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation, either version 3 of the License, or (at your option) any later
+# version.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE.  See the GNU General Public License for details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program.  If not, see <https://www.gnu.org/licenses/>.
+#
+# BISTELLAR.g, read by this program, is not covered by that licence; see the
+# note at the head of that file.
+
 ##########################################################################################################
 ####            This program computes the first Pontryagin class of a simplicial complex.             ####
 ####		To be run for the case of M^8_{15}, the triangulation of the quaternionic	      ####
-####		projective plane, it needs the file Pontryagin-M_8^15.testobject.		      ####
+####		projective plane, it needs the file Pontryagin-M_8_15.testobject.		      ####
 ####		To be run in the general case it needs a modified version of the program	      ####
 ####		BISTELLAR by Frank H. Lutz, TU Berlin, Germany. 				      ####
 ####												      ####
@@ -42,9 +59,10 @@ simplex:=[];
 
 ### Variables for different options
 
-object:=1;	## 0 for user object from "Pontryagin.testobject", requires BISTELLAR (a bit modified to have all the necessary output, contact the author for the modified version).
-		## 1 for M_8^15 - using the file "Pontryagin-M_8^15.testobject", 
-		### BISTELLAR is not directly required, the input file already contains all BISTELLAR output
+object:=1;	## 0 for a user object from "Pontryagin.testobject"; each link is passed to
+		##   BISTELLAR.g, which records the flip sequence in bisfaces.
+		## 1 for M_8^15 from "Pontryagin-M_8_15.testobject", which already carries
+		##   the BISTELLAR output for every 4-simplex, so BISTELLAR.g is not read.
 
 debug:=0;
 
@@ -157,8 +175,8 @@ for simplex in Pfaces[Pdim - 4] do
 			ori_eta[i]:=ori_check([eta[i-1],eta[i]],ori_eta[i-1]);
 		od;
 		
-		eta:=ReverseList(eta);
-		ori_eta:=ReverseList(ori_eta);
+		eta:=reverse_list(eta);
+		ori_eta:=reverse_list(ori_eta);
 		
 		Remove(eta);
 		Remove(ori_eta);
@@ -243,15 +261,22 @@ PSC:=SC(Pfacets);
 
 # The next is valid only for the case H^4 = Z. This part is easily rewritten in the general case.
 
-PHomologyBasis:=SCHomologyBasisAsSimplices(PSC,Pdim-5)[1][2];
+# SCHomologyBasisAsSimplices returns one entry per generator, each of the form
+# [ torsion, cycle ], where the cycle is a list of [ coefficient, simplex ] pairs.
+# The guards below count generators; the cycle of the single generator is taken
+# inside the branch that needs it.
+
+PHomologyBasisAll:=SCHomologyBasisAsSimplices(PSC,Pdim-5);
 
 P5Boundaries:=[];
 
-if Length(PHomologyBasis)=0 then 
+if Length(PHomologyBasisAll)=0 then 
 	
 	Print("No 4th cohomologies - p1=0\n");
 
-elif Length(PHomologyBasis)=1 then 
+elif Length(PHomologyBasisAll)=1 then 
+	
+	PHomologyBasis:=PHomologyBasisAll[1][2];
 	
 	for simplex in Pfaces[Pdim-3] do
 		Add(P5Boundaries, SCBoundarySimplex(simplex,true));
@@ -280,8 +305,25 @@ elif Length(PHomologyBasis)=1 then
 
 	TransposedMat(P5Bvector);;
 
-	Print(SolutionMat(P5Bvector, Pvector));  	#The last number in the received vector is the proportionality coefficient 
-							#for the first Pontryagin class if the
+	Psolution:=SolutionMat(P5Bvector, Pvector);
+	
+	# The last entry of the solution is the proportionality coefficient for the
+	# first Pontryagin class; the remaining entries record which boundaries were
+	# used, one per (Pdim-3)-face.
+	
+	if Psolution = fail then
+		Print("p1: no solution -- the chain is not in the span of the boundaries and the homology basis\n");
+	else
+		Print("p1 coefficient = ", Psolution[Length(Psolution)], "\n");
+	fi;
+
+else
+
+	# This step is written for H^4 = Z, i.e. a single generator; the chain P has
+	# been computed either way and is left in place for a higher-rank treatment.
+
+	Print("p1: H_", Pdim-5, " has rank ", Length(PHomologyBasisAll),
+	      "; this step handles rank 0 and 1 only. The chain P is computed.\n");
 
 fi;
 # SCBoundarySimplex(simplex,orientation(+-,false))
